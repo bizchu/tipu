@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.env
+.env.*
+.DS_Store
+*.log
+# NOTE: .kiro/ must stay committed (hackathon requirement). Do not add it here.
