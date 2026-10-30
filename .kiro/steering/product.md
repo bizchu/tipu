@@ -1,7 +1,7 @@
 ---
 inclusion: always
 ---
-# Product: Main Lagi (working title)
+# Product: TIPU!
 
 A ~4-minute browser horror game for the **Kiroween 2026** hackathon (category: Resurrection; backup: Costume Contest).
 

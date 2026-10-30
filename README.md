@@ -1,4 +1,4 @@
-# Main Lagi
+# TIPU!
 
 *A cursed VHS tape, a game of congkak, and a lie that won't stay buried.*
 
