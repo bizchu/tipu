@@ -1,0 +1,330 @@
+{
+  "pbtResults": {
+    "9.1 Write property test — Property 1: `makeBoard` houses are always zero": {
+      "status": "passed",
+      "lastRunTimestamp": 1793388601026
+    },
+    "9.2 Write property test — Property 2: `makeBoard` total seeds equals `seedsPerHole × 6`": {
+      "status": "passed",
+      "lastRunTimestamp": 1793388604258
+    },
+    "9.3 Write property test — Property 3: player sowing never deposits in opponent's house": {
+      "status": "passed",
+      "lastRunTimestamp": 1793388608369
+    },
+    "9.4 Write property test — Property 4: opponent sowing never deposits in player's house": {
+      "status": "passed",
+      "lastRunTimestamp": 1793388612148
+    },
+    "9.5 Write property test — Property 5: `applyMove` preserves total seed count (update existing property to pass `isPlayer: true`)": {
+      "status": "passed",
+      "lastRunTimestamp": 1793388615915
+    },
+    "9.6 Write property test — Property 10: complete game from `makeBoard(3)` terminates within 500 turns": {
+      "status": "passed",
+      "lastRunTimestamp": 1793388619340
+    },
+    "9.7 Write property test — Property 11: complete game from `makeBoard(4)` terminates within 500 turns": {
+      "status": "passed",
+      "lastRunTimestamp": 1793388622826
+    }
+  },
+  "executionHistory": {
+    "1.1 Replace `nextIndex(i)` with `nextIndexFor(i, isPlayer)` that skips index 7 when `isPlayer` is `true` and skips index 3 when `isPlayer` is `false`": [
+      {
+        "executionId": "557e5495-0947-4ee7-8411-660160b40b1f",
+        "chatSessionId": "sess_615e8af4-5c40-4fd6-8a52-edd0d5d8bc03",
+        "timestamp": 1793386184594
+      },
+      {
+        "executionId": "557e5495-0947-4ee7-8411-660160b40b1f",
+        "chatSessionId": "sess_615e8af4-5c40-4fd6-8a52-edd0d5d8bc03",
+        "timestamp": 1793386363707
+      }
+    ],
+    "1.2 Replace `sowingPath(fromHole, count)` with `sowingPathFor(fromHole, count, isPlayer)` that delegates to `nextIndexFor`": [
+      {
+        "executionId": "557e5495-0947-4ee7-8411-660160b40b1f",
+        "chatSessionId": "sess_615e8af4-5c40-4fd6-8a52-edd0d5d8bc03",
+        "timestamp": 1793386367290
+      },
+      {
+        "executionId": "557e5495-0947-4ee7-8411-660160b40b1f",
+        "chatSessionId": "sess_615e8af4-5c40-4fd6-8a52-edd0d5d8bc03",
+        "timestamp": 1793386533050
+      }
+    ],
+    "1.3 Add `validateHole(board, holeIndex, isPlayer)` guard that throws `RangeError` when the hole is empty, not in the mover's valid hole set, or outside 0–6": [
+      {
+        "executionId": "557e5495-0947-4ee7-8411-660160b40b1f",
+        "chatSessionId": "sess_615e8af4-5c40-4fd6-8a52-edd0d5d8bc03",
+        "timestamp": 1793386370910
+      },
+      {
+        "executionId": "557e5495-0947-4ee7-8411-660160b40b1f",
+        "chatSessionId": "sess_615e8af4-5c40-4fd6-8a52-edd0d5d8bc03",
+        "timestamp": 1793386537828
+      }
+    ],
+    "1.4 Update the `MoveResult` interface to add `nextHole: number`": [
+      {
+        "executionId": "557e5495-0947-4ee7-8411-660160b40b1f",
+        "chatSessionId": "sess_615e8af4-5c40-4fd6-8a52-edd0d5d8bc03",
+        "timestamp": 1793386374503
+      },
+      {
+        "executionId": "557e5495-0947-4ee7-8411-660160b40b1f",
+        "chatSessionId": "sess_615e8af4-5c40-4fd6-8a52-edd0d5d8bc03",
+        "timestamp": 1793386541928
+      }
+    ],
+    "1. Refactor sowing primitives and types in `congkak.ts`": [
+      {
+        "executionId": "557e5495-0947-4ee7-8411-660160b40b1f",
+        "chatSessionId": "sess_615e8af4-5c40-4fd6-8a52-edd0d5d8bc03",
+        "timestamp": 1793386542305
+      }
+    ],
+    "2.1 Add `isPlayer: boolean` parameter; call `sowingPathFor` and `validateHole` with it; evaluate extra-turn against the mover's house and tembak against the mover's side holes": [
+      {
+        "executionId": "f4f0614e-8b6a-4a13-96eb-d438764fad84",
+        "chatSessionId": "sess_d94611d9-3f62-47f7-847d-1e7b7d6431b1",
+        "timestamp": 1793387027059
+      },
+      {
+        "executionId": "f4f0614e-8b6a-4a13-96eb-d438764fad84",
+        "chatSessionId": "sess_d94611d9-3f62-47f7-847d-1e7b7d6431b1",
+        "timestamp": 1793387147246
+      }
+    ],
+    "2. Update `applyMove` to support both sides": [
+      {
+        "executionId": "f4f0614e-8b6a-4a13-96eb-d438764fad84",
+        "chatSessionId": "sess_d94611d9-3f62-47f7-847d-1e7b7d6431b1",
+        "timestamp": 1793387147495
+      }
+    ],
+    "3.1 In `congkak.test.ts`, add `isPlayer: true` to every existing `applyMove(b, holeIndex)` call so they compile and pass with the updated signature": [
+      {
+        "executionId": "1262783d-fe09-4b58-b7f4-17d17a1a323a",
+        "chatSessionId": "sess_23f168cc-d295-4c1d-9102-bc864f94a761",
+        "timestamp": 1793387196914
+      },
+      {
+        "executionId": "1262783d-fe09-4b58-b7f4-17d17a1a323a",
+        "chatSessionId": "sess_23f168cc-d295-4c1d-9102-bc864f94a761",
+        "timestamp": 1793387252011
+      }
+    ],
+    "3. Update existing tests to pass `isPlayer: true`": [
+      {
+        "executionId": "1262783d-fe09-4b58-b7f4-17d17a1a323a",
+        "chatSessionId": "sess_23f168cc-d295-4c1d-9102-bc864f94a761",
+        "timestamp": 1793387252952
+      }
+    ],
+    "4.1 Export `FullMoveResult` interface (`board`, `extraTurn`, `captured`, `captureHole?`)": [
+      {
+        "executionId": "7c740a54-7f67-46c7-bc62-751d2b9e43e9",
+        "chatSessionId": "sess_d3488efa-ccdd-4c30-801c-39d74438a60b",
+        "timestamp": 1793387309264
+      },
+      {
+        "executionId": "7c740a54-7f67-46c7-bc62-751d2b9e43e9",
+        "chatSessionId": "sess_d3488efa-ccdd-4c30-801c-39d74438a60b",
+        "timestamp": 1793387367802
+      }
+    ],
+    "4.2 Implement `applyFullMove(board, holeIndex, isPlayer)`: call `applyMove` in a loop using `nextHole`, continuing while `!extraTurn && !captured && board[nextHole] > 1`; throw `Error` after 200 iterations; call `validateHole` before the loop": [
+      {
+        "executionId": "7c740a54-7f67-46c7-bc62-751d2b9e43e9",
+        "chatSessionId": "sess_d3488efa-ccdd-4c30-801c-39d74438a60b",
+        "timestamp": 1793387373046
+      },
+      {
+        "executionId": "7c740a54-7f67-46c7-bc62-751d2b9e43e9",
+        "chatSessionId": "sess_d3488efa-ccdd-4c30-801c-39d74438a60b",
+        "timestamp": 1793387476333
+      }
+    ],
+    "4. Add `applyFullMove`": [
+      {
+        "executionId": "7c740a54-7f67-46c7-bc62-751d2b9e43e9",
+        "chatSessionId": "sess_d3488efa-ccdd-4c30-801c-39d74438a60b",
+        "timestamp": 1793387477484
+      }
+    ],
+    "5.1 Export `GameResult` type (`'player' | 'opponent' | 'draw'`) and implement `getWinner(board)` returning the correct value based on house comparison": [
+      {
+        "executionId": "15887b00-09e1-4054-a292-d11a120824b7",
+        "chatSessionId": "sess_3edceef5-5040-4cfe-a64d-350240c5daff",
+        "timestamp": 1793387548451
+      },
+      {
+        "executionId": "15887b00-09e1-4054-a292-d11a120824b7",
+        "chatSessionId": "sess_3edceef5-5040-4cfe-a64d-350240c5daff",
+        "timestamp": 1793387633523
+      }
+    ],
+    "5. Add `getWinner`": [
+      {
+        "executionId": "15887b00-09e1-4054-a292-d11a120824b7",
+        "chatSessionId": "sess_3edceef5-5040-4cfe-a64d-350240c5daff",
+        "timestamp": 1793387635271
+      }
+    ],
+    "7.1 Export `SeedStepType` and `SeedStep` types": [
+      {
+        "executionId": "5a581787-9868-465b-9cb0-06da606e41fd",
+        "chatSessionId": "sess_6a530c54-89ed-4b68-8eb8-ffd9ff89c593",
+        "timestamp": 1793387695612
+      },
+      {
+        "executionId": "5a581787-9868-465b-9cb0-06da606e41fd",
+        "chatSessionId": "sess_6a530c54-89ed-4b68-8eb8-ffd9ff89c593",
+        "timestamp": 1793387813987
+      }
+    ],
+    "7.2 Implement `getSeedPath(board, holeIndex, isPlayer)`: maintain an internal board copy; emit `SeedStep` records with sequentially assigned `seedIndex` values for `'sow'`, `'keepSowing'`, `'extraTurn'`, and `'tembak'` types following the algorithm in the design; throw `Error` after 200 iterations": [
+      {
+        "executionId": "5a581787-9868-465b-9cb0-06da606e41fd",
+        "chatSessionId": "sess_6a530c54-89ed-4b68-8eb8-ffd9ff89c593",
+        "timestamp": 1793387819058
+      },
+      {
+        "executionId": "5a581787-9868-465b-9cb0-06da606e41fd",
+        "chatSessionId": "sess_6a530c54-89ed-4b68-8eb8-ffd9ff89c593",
+        "timestamp": 1793387823250
+      }
+    ],
+    "7. Add `getSeedPath`": [
+      {
+        "executionId": "5a581787-9868-465b-9cb0-06da606e41fd",
+        "chatSessionId": "sess_6a530c54-89ed-4b68-8eb8-ffd9ff89c593",
+        "timestamp": 1793387823460
+      }
+    ],
+    "8.1 Export `PreviewResult` interface (`landingHole`, `willCapture`, `willExtraTurn`, `willKeepSow`)": [
+      {
+        "executionId": "6ff8ca1d-cf69-4102-bd4d-d8e13367404b",
+        "chatSessionId": "sess_fcde7644-a5b3-442d-b8ed-2894853f5a9a",
+        "timestamp": 1793387865883
+      },
+      {
+        "executionId": "6ff8ca1d-cf69-4102-bd4d-d8e13367404b",
+        "chatSessionId": "sess_fcde7644-a5b3-442d-b8ed-2894853f5a9a",
+        "timestamp": 1793387922520
+      }
+    ],
+    "8.2 Implement `previewLastSeed(board, holeIndex, isPlayer)`: copy the board with `[...board] as Board`, call `applyFullMove` on the copy, derive the four `PreviewResult` fields from the `FullMoveResult`, and return without touching the original board": [
+      {
+        "executionId": "6ff8ca1d-cf69-4102-bd4d-d8e13367404b",
+        "chatSessionId": "sess_fcde7644-a5b3-442d-b8ed-2894853f5a9a",
+        "timestamp": 1793387927291
+      },
+      {
+        "executionId": "6ff8ca1d-cf69-4102-bd4d-d8e13367404b",
+        "chatSessionId": "sess_fcde7644-a5b3-442d-b8ed-2894853f5a9a",
+        "timestamp": 1793388026787
+      }
+    ],
+    "8. Add `previewLastSeed`": [
+      {
+        "executionId": "6ff8ca1d-cf69-4102-bd4d-d8e13367404b",
+        "chatSessionId": "sess_fcde7644-a5b3-442d-b8ed-2894853f5a9a",
+        "timestamp": 1793388027322
+      }
+    ],
+    "9.1 Write property test — Property 1: `makeBoard` houses are always zero": [
+      {
+        "executionId": "951034d3-cc3d-4341-bac0-1352f7628c6f",
+        "chatSessionId": "sess_04fc0b72-99e4-4584-830c-153c3ca80f7f",
+        "timestamp": 1793388090264
+      },
+      {
+        "executionId": "951034d3-cc3d-4341-bac0-1352f7628c6f",
+        "chatSessionId": "sess_04fc0b72-99e4-4584-830c-153c3ca80f7f",
+        "timestamp": 1793388642293
+      }
+    ],
+    "9.2 Write property test — Property 2: `makeBoard` total seeds equals `seedsPerHole × 6`": [
+      {
+        "executionId": "951034d3-cc3d-4341-bac0-1352f7628c6f",
+        "chatSessionId": "sess_04fc0b72-99e4-4584-830c-153c3ca80f7f",
+        "timestamp": 1793388093530
+      },
+      {
+        "executionId": "951034d3-cc3d-4341-bac0-1352f7628c6f",
+        "chatSessionId": "sess_04fc0b72-99e4-4584-830c-153c3ca80f7f",
+        "timestamp": 1793388645713
+      }
+    ],
+    "9.3 Write property test — Property 3: player sowing never deposits in opponent's house": [
+      {
+        "executionId": "951034d3-cc3d-4341-bac0-1352f7628c6f",
+        "chatSessionId": "sess_04fc0b72-99e4-4584-830c-153c3ca80f7f",
+        "timestamp": 1793388096634
+      },
+      {
+        "executionId": "951034d3-cc3d-4341-bac0-1352f7628c6f",
+        "chatSessionId": "sess_04fc0b72-99e4-4584-830c-153c3ca80f7f",
+        "timestamp": 1793388648880
+      }
+    ],
+    "9.4 Write property test — Property 4: opponent sowing never deposits in player's house": [
+      {
+        "executionId": "951034d3-cc3d-4341-bac0-1352f7628c6f",
+        "chatSessionId": "sess_04fc0b72-99e4-4584-830c-153c3ca80f7f",
+        "timestamp": 1793388100294
+      },
+      {
+        "executionId": "951034d3-cc3d-4341-bac0-1352f7628c6f",
+        "chatSessionId": "sess_04fc0b72-99e4-4584-830c-153c3ca80f7f",
+        "timestamp": 1793388651997
+      }
+    ],
+    "9.5 Write property test — Property 5: `applyMove` preserves total seed count (update existing property to pass `isPlayer: true`)": [
+      {
+        "executionId": "951034d3-cc3d-4341-bac0-1352f7628c6f",
+        "chatSessionId": "sess_04fc0b72-99e4-4584-830c-153c3ca80f7f",
+        "timestamp": 1793388105570
+      },
+      {
+        "executionId": "951034d3-cc3d-4341-bac0-1352f7628c6f",
+        "chatSessionId": "sess_04fc0b72-99e4-4584-830c-153c3ca80f7f",
+        "timestamp": 1793388655535
+      }
+    ],
+    "9.6 Write property test — Property 10: complete game from `makeBoard(3)` terminates within 500 turns": [
+      {
+        "executionId": "951034d3-cc3d-4341-bac0-1352f7628c6f",
+        "chatSessionId": "sess_04fc0b72-99e4-4584-830c-153c3ca80f7f",
+        "timestamp": 1793388109531
+      },
+      {
+        "executionId": "951034d3-cc3d-4341-bac0-1352f7628c6f",
+        "chatSessionId": "sess_04fc0b72-99e4-4584-830c-153c3ca80f7f",
+        "timestamp": 1793388658908
+      }
+    ],
+    "9.7 Write property test — Property 11: complete game from `makeBoard(4)` terminates within 500 turns": [
+      {
+        "executionId": "951034d3-cc3d-4341-bac0-1352f7628c6f",
+        "chatSessionId": "sess_04fc0b72-99e4-4584-830c-153c3ca80f7f",
+        "timestamp": 1793388112955
+      },
+      {
+        "executionId": "951034d3-cc3d-4341-bac0-1352f7628c6f",
+        "chatSessionId": "sess_04fc0b72-99e4-4584-830c-153c3ca80f7f",
+        "timestamp": 1793388662282
+      }
+    ],
+    "9. Add missing fast-check properties to `congkak.test.ts`": [
+      {
+        "executionId": "951034d3-cc3d-4341-bac0-1352f7628c6f",
+        "chatSessionId": "sess_04fc0b72-99e4-4584-830c-153c3ca80f7f",
+        "timestamp": 1793388642465
+      }
+    ]
+  }
+}
