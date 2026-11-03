@@ -1,0 +1,679 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Create `frontend/src/scenes/BoardScene.ts`; export `RoundConfig`, `ResolvedConfig`, `SceneState` enum, `SEED_COLOURS`, `SeedColour`, `HoleData`, and `HOLE_POSITIONS` constant array with the eight pixel-coordinate pairs from the design": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608871772
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608888242
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608998609
+      }
+    ],
+    "1.2 Implement and export `parseRoundConfig(raw: unknown): ResolvedConfig`; apply round-derived defaults for missing/invalid fields; discard `seedsPerHole` if it is not a positive integer": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608872060
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609002658
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609196456
+      }
+    ],
+    "1.3 Implement and export `getSeedColour(seedIndex: number): SeedColour` using `SEED_COLOURS[seedIndex % SEED_COLOURS.length]`": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608872204
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609006352
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609201107
+      }
+    ],
+    "1.4 Implement and export `selectOpponentHole(board: Board): number`; priority order: extra-turn hole → capture hole → random legal hole; use `Math.random()` (not `Phaser.Math.RND`) so the function remains free of Phaser imports": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608872429
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609009896
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609206345
+      }
+    ],
+    "2.1 In `BoardScene.preload`, load background images for both `'room'` (`backgrounds/room/room_preview.png` → key `bg_room`) and `'outside'` (`backgrounds/outside/outside_preview.png` → key `bg_outside`)": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608872648
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609211970
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609277566
+      }
+    ],
+    "2.2 Load all three Wan Mahora portrait frames (`characters/wan_mahora/wan_mahora_calm.png`, `wan_mahora_annoyed.png`, `wan_mahora_angry.png`)": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608872779
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609216074
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609283440
+      }
+    ],
+    "2.3 Load all four village chief portrait frames (`characters/village_chief/village_chief_calm.png`, `village_chief_angry.png`, `village_chief_dead.png`, `village_chief_dead_grey.png`)": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608873028
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609220361
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609289307
+      }
+    ],
+    "2.4 Load both board images (`board/congkak_board.png` → key `board_angled`, `board/congkak_board_flat.png` → key `board_flat`) and the gameplay textbox (`ui/textbox_gameplay.png` → key `textbox_gameplay`)": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608873182
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609224726
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609293567
+      }
+    ],
+    "2.5 Load all six seed images (`board/seeds/seed_black.png`, `seed_blue.png`, `seed_green.png`, `seed_red.png`, `seed_white.png`, `seed_yellow.png`) with keys `seed_<colour>`": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608873319
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609229043
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609298233
+      }
+    ],
+    "2.6 Load all five hand images (`ui/hands/hand_fist.png`, `hand_open.png`, `hand_claw.png`, `hand_grab.png`, `hand_reach.png`) with keys `hand_<name>`": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608873559
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609233144
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609306277
+      }
+    ],
+    "3.1 Place the background image (key selected from `resolvedConfig.background`) scaled to fill 1920×1080 at depth 0; place `board_angled` centred at (960, 900) at depth 10": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608873728
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609311754
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609721077
+      }
+    ],
+    "3.2 Place the opponent portrait (calm pose) centred at (960, 350) at depth 5, behind the board; store the reference so pose can be swapped later": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608873856
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609315829
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609727183
+      }
+    ],
+    "3.3 Create a `Phaser.GameObjects.Zone` for each of the eight holes at the coordinates in `HOLE_POSITIONS`; store all eight in the `holes: HoleData[]` array; zones for the houses (indices 3 and 7) are non-interactive": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608874022
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609320857
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609732573
+      }
+    ],
+    "3.4 Place the gameplay textbox image with its left edge at x = 40 and top edge at y = 740 at depth 20": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608874410
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609325017
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609739096
+      }
+    ],
+    "4.1 For each entry in `holes`, create a `Phaser.GameObjects.Text` label centred above the hole's (x, y), depth 30; initialise with `String(board[index])` and store it in `holeData.label`": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608874533
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609744144
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609843481
+      }
+    ],
+    "4.2 Implement `updateLabels(board: Board)` — a private method that iterates all eight `HoleData` entries and sets `label.setText(String(board[i]))`; call it at the start of every move before any animation": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608874670
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609854185
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609950135
+      }
+    ],
+    "5.1 Implement a `SeedPool` inside `BoardScene` that pre-creates 30 seed `Image` objects (all hidden/inactive) in `create`; `acquire(colour)` activates and returns the next available image with the correct texture; `release(img)` hides and deactivates it": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608874982
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609750129
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609849531
+      }
+    ],
+    "5.2 Implement `populateRestingSeeds(holeData: HoleData, count: number)` — releases any existing resting seeds for that hole back to the pool, then acquires `count` new seeds using `getSeedColour(i)` per seed index and positions them in a small cluster around the hole centre; call for every hole during `create` and after each animation completes": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608875105
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609859047
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609957041
+      }
+    ],
+    "5.3 Before the first arc animation of any move, call `holeData.restingSeeds.forEach(img => pool.release(img))` on the source hole and clear `holeData.restingSeeds`; when a seed is dropped during animation, call `populateRestingSeeds` for that hole immediately": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608875229
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793610265672
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793610517048
+      }
+    ],
+    "5.4 After tembak is detected, hide resting seeds in both the landing hole and its opposite hole before animating captured seeds to the house": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608875558
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793610270847
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793610521977
+      }
+    ],
+    "6.1 Implement `applyGlow(holeData: HoleData)` — add a looping alpha-pulse tween on the zone using additive blend; store the tween reference in `holeData.glowTweens`; call for all player holes with `board[i] > 0` at the start of each player turn": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608875690
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793610275530
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793610528999
+      }
+    ],
+    "6.2 Implement `removeAllGlows()` — stop and remove all glow tweens for every hole, set `isGlowing` to false; call this immediately when a hole is clicked and when it becomes the opponent's turn": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608875820
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793610281141
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793610533746
+      }
+    ],
+    "6.3 Attach `pointerover` and `pointerout` listeners to each player hole zone; on `pointerover`, call `previewLastSeed(board, index, true)` and apply a PreviewHighlight (a coloured rectangle or tint overlay) to `holeData[result.landingHole]`; on `pointerout`, remove the highlight": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608876057
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793610539452
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793610622690
+      }
+    ],
+    "6.4 Attach a `pointerup` listener to each player hole zone; on click, guard with `sceneState === SceneState.PLAYER_TURN` before proceeding; call `removeAllGlows()`, disable all player zone input, and begin the move animation": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608876198
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793610544870
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793610629082
+      }
+    ],
+    "7.1 Implement `animateMove(holeIndex: number, isPlayer: boolean): Promise<void>` — call `getSeedPath(board, holeIndex, isPlayer)` to get the steps; set `sceneState` to `ANIMATING`; call `updateLabels` before the first arc": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608876354
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793610634181
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793610711322
+      }
+    ],
+    "7.2 For each `SeedStep` of type `'sow'`, animate a seed sprite from `fromHole` position to `toHole` position along a parabolic arc (midpoint lifted by ~80 px) using a Phaser tween lasting 200 ms; return a Promise that resolves when the tween completes": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608876616
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793610716966
+      }
+    ],
+    "7.3 For each `SeedStep` of type `'keepSowing'`, resolve a 150 ms pause Promise before continuing to the next step": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608876839
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793610721684
+      }
+    ],
+    "7.4 For each `SeedStep` of type `'extraTurn'`, animate the final seed into the player house, then display \"Your turn again!\" in the gameplay textbox (via a `Phaser.GameObjects.Text` or updating a shared textbox text object) before returning": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608876965
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793610729289
+      }
+    ],
+    "7.5 For each `SeedStep` of type `'tembak'`, animate the landing seed to the mover's house first, then animate each subsequent tembak step from the opposite hole to the house one at a time": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608877095
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793610738292
+      }
+    ],
+    "7.6 Maintain a `hand_fist` sprite at the source hole during pick-up; swap to `hand_open` at each drop point; move the hand sprite to follow the seed arc using tween callbacks": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608877232
+      },
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793610745540
+      }
+    ],
+    "7.7 After all SeedSteps have been processed, call `applyFullMove` to get the final board state, replace `this.board`, call `populateRestingSeeds` for every hole, and call `updateLabels`": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608877566
+      }
+    ],
+    "7.8 After updating the board, call the board state invariant check: assert `totalSeeds(board) === initialSeedCount`; if mismatched, `console.error` the board array and expected total; always continue": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608877721
+      }
+    ],
+    "8.1 In `create`, set `sceneState = SceneState.PLAYER_TURN` and call `applyGlow` for all player holes with seeds; implement `endPlayerTurn(result: FullMoveResult)` — if `result.extraTurn`, stay in `PLAYER_TURN` and re-apply glows; else switch to `SceneState.OPP_TURN` and call `triggerOpponentTurn()`": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608877859
+      }
+    ],
+    "8.2 Implement `endOpponentTurn(result: FullMoveResult)` — if `result.extraTurn` and `oppExtraTurnCount < 5`, increment `oppExtraTurnCount`, stay in `OPP_TURN`, and schedule another opponent move after 800–1200 ms; else reset `oppExtraTurnCount`, switch to `PLAYER_TURN`, re-apply glows": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608877987
+      }
+    ],
+    "8.3 After each turn ends, call `hasLegalMove` for the next active mover; if no legal move, call `endGame(getWinner(board))`; if the player has no legal move, call `endGame` immediately without starting a new turn": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608878291
+      }
+    ],
+    "8.4 Guard the player hole `pointerup` handler: if `sceneState !== SceneState.PLAYER_TURN`, drop the event silently": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608878417
+      }
+    ],
+    "9.1 Implement `triggerOpponentTurn()` — schedule a `this.time.delayedCall(800 + Math.random() * 400, ...)` callback; inside the callback, call `selectOpponentHole(board)` to get the chosen hole, then call `animateMove(hole, false)`; after the animation resolves, call `endOpponentTurn` with the `FullMoveResult`": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608878540
+      }
+    ],
+    "9.2 If `hasLegalMove(board, false)` is false when `triggerOpponentTurn` fires, call `endGame(getWinner(board))` immediately without animating": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608878672
+      }
+    ],
+    "10.1 When the player's hole click is confirmed (start of player move animation), if opponent is `wan_mahora`, swap portrait to `wan_mahora_annoyed`": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608878951
+      }
+    ],
+    "10.2 When the player's move animation completes with a tembak capture landing in an opponent hole (`result.captured === true && result.captureHole` is in OPP_HOLES), swap portrait to `<opponent>_angry` for both characters": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608879117
+      }
+    ],
+    "10.3 When `triggerOpponentTurn()` fires (at the start of the opponent's turn), revert portrait to `<opponent>_calm`": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608879250
+      }
+    ],
+    "10.4 Implement `setPortrait(pose: string)` — calls `setTexture` on the portrait sprite with key `<opponent>_<pose>`; ensure `setTint` and alpha modification are never called on the portrait sprite anywhere in the file": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608879401
+      }
+    ],
+    "11.1 Implement `createGameOverlay(scene, message, onRetry)` — build a `Phaser.GameObjects.Container` at depth 100 with: a semi-transparent dark rectangle (600×300, centred at 960×540), a result text object at (960, 490), and a RETRY `Text` button at (960, 590) with `setInteractive()` and a `pointerup` listener that calls `onRetry`": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608879535
+      }
+    ],
+    "11.2 Implement `endGame(result: GameResult)` — set `sceneState = SceneState.GAME_OVER`, disable all hole input; call `createGameOverlay` with `'You win!'` if `result === 'player'`, else `'You lose.'`; wire `onRetry` to `this.scene.restart(this.resolvedConfig)`": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608879825
+      }
+    ],
+    "12. Checkpoint — scene renders and game loop works end-to-end": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608879987
+      }
+    ],
+    "13.1 Create `frontend/src/scenes/boardScene.helpers.test.ts`; import `parseRoundConfig`, `getSeedColour`, `selectOpponentHole`, `SEED_COLOURS` from `BoardScene.ts` and `getSeedPath`, `previewLastSeed`, `hasLegalMove`, `makeBoard` from `congkak.ts`": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608880280
+      }
+    ],
+    "13.9 Write example-based unit tests for `parseRoundConfig`: round 1 defaults (no args), round 2 defaults, explicit `seedsPerHole` preserved, `seedsPerHole: 0` discarded, `seedsPerHole: -1` discarded, `seedsPerHole: 1.5` discarded, missing `round` falls back to 1": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608880403
+      }
+    ],
+    "13.10 Write example-based unit tests for `selectOpponentHole`: prefers extra-turn hole when available, prefers capture hole when no extra-turn, picks from legal holes when neither applies": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608880750
+      }
+    ],
+    "14.1 Import `BoardScene` in `frontend/src/main.ts` and add it to the `scene` array in the Phaser config": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608880884
+      }
+    ],
+    "14.2 After `new Phaser.Game(config)`, add a `DemoKeyListener` that registers a `keydown` listener on `window`; on `D` key down, record timestamp; on digit `1` within 1000 ms, call `game.scene.stop(activeScene)` then `game.scene.start('BoardScene', { round: 1 })`; on digit `2` within 1000 ms, start with `{ round: 2 }`; ignore digits `3`–`9`": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608881040
+      }
+    ],
+    "15. Final checkpoint — build passes and all tests pass": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793608881341
+      }
+    ],
+    "1. Define exported types, constants, and pure helper `parseRoundConfig` in `BoardScene.ts`": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609207244
+      }
+    ],
+    "2. Implement `preload` — declare and load all required assets": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609306597
+      }
+    ],
+    "3. Implement `create` — background, board image, opponent portrait, and textbox layout": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609739453
+      }
+    ],
+    "4. Implement seed count labels (Requirement 4)": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793609951337
+      }
+    ],
+    "5. Implement `SeedPool` and resting seed sprites (Requirement 5)": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793610522903
+      }
+    ],
+    "6. Implement GlowState and PreviewHighlight interaction (Requirement 6)": [
+      {
+        "executionId": "aece0536-da21-483f-9d81-2b7eb4f7490d",
+        "chatSessionId": "sess_750928f7-920a-4ee1-a884-43484618d409",
+        "timestamp": 1793610629468
+      }
+    ]
+  }
+}
