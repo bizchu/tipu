@@ -1,272 +1,135 @@
 import Phaser from 'phaser';
-import { Board, OPP_HOLES, PLAYER_HOLES, PLAYER_HOUSE, OPP_HOUSE, makeBoard, applyFullMove, totalSeeds, previewLastSeed, getSeedPath, SeedStep } from '../logic/congkak';
+import {
+  Board,
+  FullMoveResult,
+  OPP_HOLES,
+  PLAYER_HOLES,
+  SeedStep,
+  applyFullMove,
+  getSeedPath,
+  getWinner,
+  hasLegalMove,
+  makeBoard,
+  previewLastSeed,
+  totalSeeds,
+  GameResult,
+} from '../logic/congkak';
+import {
+  HOLE_POSITIONS,
+  ResolvedConfig,
+  SEED_COLOURS,
+  SeedColour,
+  getSeedColour,
+  labelPosition,
+  parseRoundConfig,
+  resultMessage,
+  seedOffset,
+  selectOpponentHole,
+} from './boardScene.helpers';
 
-// ---------------------------------------------------------------------------
-// RoundConfig — passed via scene.start('BoardScene', config)
-// ---------------------------------------------------------------------------
-
-export interface RoundConfig {
-  /** 1 = room / Wan Mahora, 2 = outside / village chief */
-  round: 1 | 2;
-  /** Seeds per hole at game start. Falls back to round-derived default if absent/invalid. */
-  seedsPerHole?: number;
-  /** Background asset key. */
-  background?: 'room' | 'outside';
-  /** Opponent character. */
-  opponent?: 'wan_mahora' | 'village_chief';
-}
-
-/** Fully-resolved config with all defaults applied. */
-export interface ResolvedConfig {
-  round: 1 | 2;
-  seedsPerHole: number;        // always a positive integer
-  background: 'room' | 'outside';
-  opponent: 'wan_mahora' | 'village_chief';
-}
-
-// ---------------------------------------------------------------------------
-// parseRoundConfig — validates and resolves raw scene data into ResolvedConfig
-// ---------------------------------------------------------------------------
-
-/**
- * Accepts any unknown value (passed via `scene.start('BoardScene', rawData)`)
- * and returns a fully-resolved {@link ResolvedConfig}.
- *
- * Rules:
- * - If `raw` is not a non-null object, all values default to round 1 values.
- * - `round`: 1 or 2 only; anything else → 1.
- * - `background`: 'room' | 'outside' → kept; else derived from round.
- * - `opponent`: 'wan_mahora' | 'village_chief' → kept; else derived from round.
- * - `seedsPerHole`: positive integer → kept; else derived from round (1→3, 2→4).
- */
-export function parseRoundConfig(raw: unknown): ResolvedConfig {
-  // Treat non-object / null as missing config
-  const obj = (raw !== null && typeof raw === 'object') ? raw as Record<string, unknown> : {};
-
-  // --- round ---
-  const round: 1 | 2 = (obj['round'] === 2) ? 2 : 1;
-
-  // --- background ---
-  let background: 'room' | 'outside';
-  if (obj['background'] === 'room' || obj['background'] === 'outside') {
-    background = obj['background'];
-  } else {
-    background = round === 2 ? 'outside' : 'room';
-  }
-
-  // --- opponent ---
-  let opponent: 'wan_mahora' | 'village_chief';
-  if (obj['opponent'] === 'wan_mahora' || obj['opponent'] === 'village_chief') {
-    opponent = obj['opponent'];
-  } else {
-    opponent = round === 2 ? 'village_chief' : 'wan_mahora';
-  }
-
-  // --- seedsPerHole ---
-  const rawSeeds = obj['seedsPerHole'];
-  let seedsPerHole: number;
-  if (rawSeeds !== undefined && Number.isInteger(rawSeeds) && (rawSeeds as number) > 0) {
-    seedsPerHole = rawSeeds as number;
-  } else {
-    seedsPerHole = round === 2 ? 4 : 3;
-  }
-
-  return { round, seedsPerHole, background, opponent };
-}
+export * from './boardScene.helpers';
 
 // ---------------------------------------------------------------------------
 // SceneState — drives which interaction guards are active
 // ---------------------------------------------------------------------------
 
 export enum SceneState {
-  PLAYER_TURN = 'PLAYER_TURN',  // awaiting hole click
-  OPP_TURN    = 'OPP_TURN',     // opponent AI delay + animation
-  ANIMATING   = 'ANIMATING',    // seed animation running (either side)
-  GAME_OVER   = 'GAME_OVER',    // overlay shown, only RETRY active
+  PLAYER_TURN = 'PLAYER_TURN',
+  OPP_TURN = 'OPP_TURN',
+  ANIMATING = 'ANIMATING',
+  GAME_OVER = 'GAME_OVER',
 }
-
-// ---------------------------------------------------------------------------
-// Seed colour constants
-// ---------------------------------------------------------------------------
-
-export const SEED_COLOURS = [
-  'black', 'blue', 'green', 'red', 'white', 'yellow',
-] as const;
-export type SeedColour = typeof SEED_COLOURS[number];
-
-/** Pure helper — exported for unit testing. */
-export function getSeedColour(seedIndex: number): SeedColour {
-  return SEED_COLOURS[seedIndex % SEED_COLOURS.length];
-}
-
-// ---------------------------------------------------------------------------
-// HoleData — one entry per board index (0–7)
-// ---------------------------------------------------------------------------
 
 export interface HoleData {
-  /** Board index (0–7). */
   index: number;
-  /** Centre x in base canvas coordinates. */
   x: number;
-  /** Centre y in base canvas coordinates. */
   y: number;
-  /** Phaser Zone used for pointer interaction. */
   zone: Phaser.GameObjects.Zone;
-  /** Text object showing seed count. */
   label: Phaser.GameObjects.Text;
-  /** Resting seed sprites currently visible in this hole. */
+  badge: Phaser.GameObjects.Graphics;
   restingSeeds: Phaser.GameObjects.Image[];
-  /** True when GlowState is active. */
   isGlowing: boolean;
-  /** Tweens that form the glow pulse (stored so they can be stopped). */
   glowTweens: Phaser.Tweens.Tween[];
 }
-
-// ---------------------------------------------------------------------------
-// HOLE_POSITIONS — pixel coordinates for the 8 board positions
-// Board image anchored at (960, 900) in the 1920×1080 canvas.
-// TODO: tune these against the actual pixel content of congkak_board.png
-// ---------------------------------------------------------------------------
-
-export const HOLE_POSITIONS: ReadonlyArray<{ x: number; y: number }> = [
-  { x: 710,  y: 890 },  // 0  player hole 0 (left)
-  { x: 860,  y: 900 },  // 1  player hole 1 (centre)
-  { x: 1010, y: 890 },  // 2  player hole 2 (right)
-  { x: 1160, y: 870 },  // 3  player house
-  { x: 1010, y: 820 },  // 4  opp hole 0 (right)
-  { x: 860,  y: 810 },  // 5  opp hole 1 (centre)
-  { x: 710,  y: 820 },  // 6  opp hole 2 (left)
-  { x: 560,  y: 840 },  // 7  opp house
-] as const; // TODO: tune
-
-// ---------------------------------------------------------------------------
-// selectOpponentHole — pure AI move selector (no Phaser imports)
-// ---------------------------------------------------------------------------
-
-/**
- * Chooses which opponent hole to play from, in priority order:
- *  1. A hole whose move earns an extra turn.
- *  2. A hole whose move results in a tembak capture.
- *  3. A uniformly random legal hole (using Math.random()).
- *
- * Uses only `Math.random()` so this function stays pure and fully testable
- * without Phaser.
- *
- * @param board Current board state (not mutated).
- * @returns Board index of the chosen hole (4, 5, or 6).
- * @throws RangeError if there are no legal opponent moves.
- */
-export function selectOpponentHole(board: Board): number {
-  // Collect all legal opponent holes (non-empty)
-  const legal = (OPP_HOLES as readonly number[]).filter(h => board[h] > 0);
-
-  if (legal.length === 0) {
-    throw new RangeError('selectOpponentHole: no legal opponent moves available');
-  }
-
-  const previews = legal.map(h => ({
-    hole: h,
-    preview: previewLastSeed(board, h, false),
-  }));
-
-  // Priority 1: extra turn
-  const extraTurn = previews.find(p => p.preview.willExtraTurn);
-  if (extraTurn !== undefined) return extraTurn.hole;
-
-  // Priority 2: capture (tembak)
-  const capture = previews.find(p => p.preview.willCapture);
-  if (capture !== undefined) return capture.hole;
-
-  // Priority 3: random from remaining legal holes
-  const randomIndex = Math.floor(Math.random() * legal.length);
-  return legal[randomIndex];
-}
-
-// ---------------------------------------------------------------------------
-// SeedPool — object-pool for seed Image sprites (task 5.1)
-// ---------------------------------------------------------------------------
 
 export interface SeedPool {
   acquire(colour: SeedColour): Phaser.GameObjects.Image;
   release(img: Phaser.GameObjects.Image): void;
 }
 
-// ---------------------------------------------------------------------------
-// BoardScene
-// ---------------------------------------------------------------------------
+const NAMES: Record<ResolvedConfig['opponent'], string> = {
+  wan_mahora: 'Wan Mahora',
+  village_chief: 'Village Chief',
+};
+
+/** Short scripted reactions (the AI taunt hook can replace these later). */
+const LINES = {
+  wan_mahora: {
+    start: 'Go on, sayang. You go first.',
+    myTurn: ['My turn, sayang...', 'Watch closely now.', 'Hmm... let me see.'],
+    extra: ['Again? How lucky for me.', 'One more, sayang.'],
+    captured: ['Tch... you took those?', 'Cheeky girl.'],
+    capturing: ['Mine now, sayang.', 'Did you see that coming?'],
+  },
+  village_chief: {
+    start: 'Sit. The game begins. You move first.',
+    myTurn: ['My move.', 'Observe.', 'The court proceeds.'],
+    extra: ['Again.', 'The law favours me.'],
+    captured: ['...Noted.', 'You overstep.'],
+    capturing: ['Confiscated.', 'As judged.'],
+  },
+} as const;
+
+const SEED_SIZE = 40;
+const ARC = 70;
+const SOW_MS = 210;
+const MAX_OPP_EXTRA_TURNS = 5;
 
 export default class BoardScene extends Phaser.Scene {
-  // ---- task 3.1 ----
   resolvedConfig!: ResolvedConfig;
-
-  // ---- task 3.2 ----
   portraitSprite!: Phaser.GameObjects.Image;
-
-  // ---- task 3.3 ----
   holes!: HoleData[];
   board!: Board;
-
-  // ---- task 3.4 ----
-  textboxSprite!: Phaser.GameObjects.Image;
-
-  // ---- task 5.1 ----
   pool!: SeedPool;
-  seedPoolImages: Phaser.GameObjects.Image[] = [];
-
-  // ---- task 6.1 ----
-  private glowOverlays: Phaser.GameObjects.Graphics[] = [];
-
-  // ---- task 6.3 ----
-  private previewHighlightGfx: Phaser.GameObjects.Graphics | null = null;
-
-  // ---- task 7.4 ----
-  private gameplayText!: Phaser.GameObjects.Text;
-
-  // ---- task 7.6 ----
-  private handSprite!: Phaser.GameObjects.Image;
-
-  // ---- task 8.1 ----
   sceneState!: SceneState;
+
+  private initialSeedCount = 0;
+  private oppExtraTurnCount = 0;
+  private dialogueName!: Phaser.GameObjects.Text;
+  private dialogueText!: Phaser.GameObjects.Text;
+  private handSprite!: Phaser.GameObjects.Image;
+  private glowOverlays: Phaser.GameObjects.Graphics[] = [];
+  private previewGfx: Phaser.GameObjects.Graphics | null = null;
+  private seedPoolImages: Phaser.GameObjects.Image[] = [];
 
   constructor() {
     super({ key: 'BoardScene' });
   }
 
+  // --------------------------------------------------------------------------
+  // preload
+  // --------------------------------------------------------------------------
+
   preload(): void {
-    // Backgrounds
-    this.load.image('bg_room',    'backgrounds/room/room_preview.png');
+    this.load.image('bg_room', 'backgrounds/room/room_preview.png');
     this.load.image('bg_outside', 'backgrounds/outside/outside_preview.png');
 
-    // Wan Mahora portraits
-    this.load.image('wan_mahora_calm',    'characters/wan_mahora/wan_mahora_calm.png');
-    this.load.image('wan_mahora_annoyed', 'characters/wan_mahora/wan_mahora_annoyed.png');
-    this.load.image('wan_mahora_angry',   'characters/wan_mahora/wan_mahora_angry.png');
+    for (const pose of ['calm', 'annoyed', 'angry']) {
+      this.load.image(`wan_mahora_${pose}`, `game/wan_mahora_${pose}.png`);
+    }
+    for (const pose of ['calm', 'angry']) {
+      this.load.image(`village_chief_${pose}`, `game/village_chief_${pose}.png`);
+    }
 
-    // Village chief portraits
-    this.load.image('village_chief_calm',     'characters/village_chief/village_chief_calm.png');
-    this.load.image('village_chief_angry',    'characters/village_chief/village_chief_angry.png');
-    this.load.image('village_chief_dead',     'characters/village_chief/village_chief_dead.png');
-    this.load.image('village_chief_dead_grey','characters/village_chief/village_chief_dead_grey.png');
+    this.load.image('board_angled', 'board/congkak_board.png');
+    this.load.image('textbox_gameplay', 'ui/textbox_gameplay.png');
+    this.load.image('nametag', 'ui/nametag.png');
 
-    // Board images and gameplay textbox
-    this.load.image('board_angled',      'board/congkak_board.png');
-    this.load.image('board_flat',        'board/congkak_board_flat.png');
-    this.load.image('textbox_gameplay',  'ui/textbox_gameplay.png');
-
-    // Seed images
-    this.load.image('seed_black',  'board/seeds/seed_black.png');
-    this.load.image('seed_blue',   'board/seeds/seed_blue.png');
-    this.load.image('seed_green',  'board/seeds/seed_green.png');
-    this.load.image('seed_red',    'board/seeds/seed_red.png');
-    this.load.image('seed_white',  'board/seeds/seed_white.png');
-    this.load.image('seed_yellow', 'board/seeds/seed_yellow.png');
-
-    // Hand images
-    this.load.image('hand_fist',  'ui/hands/hand_fist.png');
-    this.load.image('hand_open',  'ui/hands/hand_open.png');
-    this.load.image('hand_claw',  'ui/hands/hand_claw.png');
-    this.load.image('hand_grab',  'ui/hands/hand_grab.png');
-    this.load.image('hand_reach', 'ui/hands/hand_reach.png');
+    for (const c of SEED_COLOURS) this.load.image(`seed_${c}`, `game/seed_${c}.png`);
+    for (const h of ['fist', 'open']) {
+      this.load.image(`hand_${h}_up`, `game/hand_${h}_up.png`);
+      this.load.image(`hand_${h}_down`, `game/hand_${h}_down.png`);
+    }
   }
 
   // --------------------------------------------------------------------------
@@ -274,508 +137,426 @@ export default class BoardScene extends Phaser.Scene {
   // --------------------------------------------------------------------------
 
   create(data: unknown): void {
-    // ---- 3.1: resolve config ----
     this.resolvedConfig = parseRoundConfig(data);
     const { background, opponent, seedsPerHole } = this.resolvedConfig;
+    this.glowOverlays = [];
+    this.previewGfx = null;
+    this.oppExtraTurnCount = 0;
 
-    // ---- 3.1: background + board image ----
-    this.add
-      .image(960, 540, 'bg_' + background)
-      .setDisplaySize(1920, 1080)
-      .setDepth(0);
+    // Background
+    this.add.image(960, 540, 'bg_' + background).setDisplaySize(1920, 1080).setDepth(0);
 
-    this.add
-      .image(960, 900, 'board_angled')
-      .setDepth(10);
-
-    // ---- 3.2: opponent portrait (calm pose, depth 5 — behind board at 10) ----
-    // NEVER call setTint or modify alpha on this sprite
+    // Opponent portrait — behind the board. Never tinted or faded.
     this.portraitSprite = this.add
-      .image(960, 350, opponent + '_calm')
+      .image(960, 1000, opponent + '_calm')
+      .setOrigin(0.5, 1)
       .setDepth(5);
 
-    // ---- 3.3: initialise board logic + hole zones ----
+    // Board with a soft drop shadow
+    const shadow = this.add.image(970, 1072, 'board_angled').setOrigin(0.5, 1).setDepth(9);
+    shadow.setDisplaySize(1000, (1000 / 1220) * 186).setTintFill(0x000000).setAlpha(0.45);
+    const boardImg = this.add.image(960, 1050, 'board_angled').setOrigin(0.5, 1).setDepth(10);
+    boardImg.setDisplaySize(1000, (1000 / 1220) * 186);
+
+    // Board state
     this.board = makeBoard(seedsPerHole);
+    this.initialSeedCount = totalSeeds(this.board);
 
-    // Placeholder text objects for labels (depth 30). Will be set in task 4.1.
-    const houseIndices = new Set([PLAYER_HOUSE, OPP_HOUSE]);
-    this.holes = HOLE_POSITIONS.map((pos, index) => {
-      const zone = this.add.zone(pos.x, pos.y, 80, 80);
-      if (!houseIndices.has(index)) {
-        zone.setInteractive();
-      }
-
-      // Label centred above the hole, initialised with actual board value (task 4.1)
-      const label = this.add
-        .text(pos.x, pos.y - 20, String(this.board[index]), { fontSize: '18px', color: '#ffffff' })
-        .setOrigin(0.5, 0.5)
-        .setDepth(30);
-
-      return {
-        index,
-        x: pos.x,
-        y: pos.y,
-        zone,
-        label,
-        restingSeeds: [],
-        isGlowing: false,
-        glowTweens: [],
-      } satisfies HoleData;
-    });
-
-    // ---- 3.4: gameplay textbox — top-left anchor at (40, 740) ----
-    this.textboxSprite = this.add
-      .image(40, 740, 'textbox_gameplay')
-      .setOrigin(0, 0)
-      .setDepth(20);
-
-    // ---- 5.1: seed object pool — pre-create 30 hidden seed images ----
+    // Seed pool
     this.seedPoolImages = [];
-    for (let i = 0; i < 30; i++) {
-      const img = this.add
-        .image(0, 0, 'seed_black')
-        .setVisible(false)
-        .setActive(false)
-        .setDepth(25);
-      this.seedPoolImages.push(img);
-    }
-
     const poolImages = this.seedPoolImages;
     const scene = this;
     this.pool = {
-      acquire(colour: SeedColour): Phaser.GameObjects.Image {
-        // Find the first inactive image in the pool
-        const img = poolImages.find(i => !i.active);
-        if (img !== undefined) {
-          img.setTexture('seed_' + colour).setVisible(true).setActive(true);
-          return img;
-        }
-        // Pool exhausted — create a new image dynamically
-        const fresh = scene.add
-          .image(0, 0, 'seed_' + colour)
-          .setVisible(true)
-          .setActive(true)
-          .setDepth(25);
-        poolImages.push(fresh);
-        return fresh;
+      acquire(colour) {
+        const img = poolImages.find((i) => !i.active) ?? scene.add.image(0, 0, 'seed_' + colour);
+        if (!poolImages.includes(img)) poolImages.push(img);
+        return img.setTexture('seed_' + colour).setDisplaySize(SEED_SIZE, SEED_SIZE).setVisible(true).setActive(true);
       },
-      release(img: Phaser.GameObjects.Image): void {
+      release(img) {
         img.setVisible(false).setActive(false);
       },
     };
 
-    // ---- task 7.4: gameplay status text ----
-    this.gameplayText = this.add
-      .text(200, 790, '', { fontSize: '20px', color: '#ffe566' })
-      .setOrigin(0.5, 0.5)
-      .setDepth(21)
-      .setVisible(false);
-
-    // ---- task 7.6: hand sprite ----
-    this.handSprite = this.add
-      .image(0, 0, 'hand_fist')
-      .setVisible(false)
-      .setDepth(35); // above seeds (25) and glow overlays (12)
-
-    // ---- populate resting seeds for initial board state (task 5.2) ----
-    this.holes.forEach(holeData => {
-      this.populateRestingSeeds(holeData, this.board[holeData.index]);
+    // Holes, zones and count badges
+    this.holes = HOLE_POSITIONS.map((pos, index) => {
+      const isHouse = index === 3 || index === 7;
+      const zone = this.add.zone(pos.x, pos.y, isHouse ? 200 : 130, isHouse ? 140 : 70);
+      const lp = labelPosition(index);
+      const badge = this.add.graphics().setDepth(29);
+      badge.fillStyle(0x1a0f0a, 0.85).fillCircle(lp.x, lp.y, isHouse ? 22 : 17);
+      badge.lineStyle(2, 0xd9a54e, 0.9).strokeCircle(lp.x, lp.y, isHouse ? 22 : 17);
+      const label = this.add
+        .text(lp.x, lp.y, String(this.board[index]), {
+          fontFamily: 'Georgia, serif',
+          fontSize: isHouse ? '24px' : '20px',
+          color: '#f6e2b4',
+          fontStyle: 'bold',
+        })
+        .setOrigin(0.5)
+        .setDepth(30);
+      return { index, x: pos.x, y: pos.y, zone, label, badge, restingSeeds: [], isGlowing: false, glowTweens: [] };
     });
+    this.holes.forEach((h) => this.populateRestingSeeds(h, this.board[h.index]));
 
-    // ---- initial scene state ----
-    this.sceneState = SceneState.PLAYER_TURN;
+    // Gameplay dialogue box (left side, board visible)
+    this.add.image(50, 610, 'textbox_gameplay').setOrigin(0, 0).setDepth(40);
+    this.add.image(170, 576, 'nametag').setOrigin(0, 0).setDepth(41);
+    this.dialogueName = this.add
+      .text(320, 606, NAMES[opponent], { fontFamily: 'Georgia, serif', fontSize: '26px', color: '#f6e2b4', fontStyle: 'bold' })
+      .setOrigin(0.5)
+      .setDepth(42);
+    this.dialogueText = this.add
+      .text(380, 715, '', {
+        fontFamily: 'Georgia, serif',
+        fontSize: '28px',
+        color: '#f0e6d4',
+        align: 'center',
+        wordWrap: { width: 500 },
+        lineSpacing: 6,
+      })
+      .setOrigin(0.5)
+      .setDepth(42);
 
-    // ---- 6.1/6.2: glow player holes on first turn ----
-    this.applyGlowsForPlayerTurn();
+    // Hand
+    this.handSprite = this.add.image(0, 0, 'hand_fist_up').setVisible(false).setDepth(35);
 
-    // ---- 6.3: hover preview — light blue landing-hole indicator ----
-    // ---- 6.4: click handler — begin player move animation ----
-    (PLAYER_HOLES as readonly number[]).forEach(index => {
+    // Hold Space to speed up sowing
+    this.input.keyboard?.on('keydown-SPACE', () => (this.tweens.timeScale = this.time.timeScale = 2.5));
+    this.input.keyboard?.on('keyup-SPACE', () => (this.tweens.timeScale = this.time.timeScale = 1));
+
+    // Player hole interaction
+    (PLAYER_HOLES as readonly number[]).forEach((index) => {
       const zone = this.holes[index].zone;
-
-      // Hover: preview where the last seed will land
-      zone.on('pointerover', () => {
-        if (this.previewHighlightGfx) {
-          this.previewHighlightGfx.destroy();
-          this.previewHighlightGfx = null;
-        }
-        if (this.board[index] === 0) return;
-        const result = previewLastSeed(this.board, index, true);
-        const target = this.holes[result.landingHole];
-        const gfx = this.add.graphics();
-        gfx.fillStyle(0x88ddff, 0.5);
-        gfx.fillCircle(target.x, target.y, 40);
-        gfx.setDepth(13);
-        this.previewHighlightGfx = gfx;
-      });
-
-      // Hover out: remove preview
-      zone.on('pointerout', () => {
-        if (this.previewHighlightGfx) {
-          this.previewHighlightGfx.destroy();
-          this.previewHighlightGfx = null;
-        }
-      });
-
-      // Click: commit the move
-      zone.on('pointerup', () => {
-        if (this.sceneState !== SceneState.PLAYER_TURN) return;
-        if (this.board[index] === 0) return;
-
-        // Remove glows
-        this.removeAllGlows();
-
-        // Remove hover preview
-        if (this.previewHighlightGfx) {
-          this.previewHighlightGfx.destroy();
-          this.previewHighlightGfx = null;
-        }
-
-        // Disable all player hole zones while animating
-        (PLAYER_HOLES as readonly number[]).forEach(pi => {
-          this.holes[pi].zone.disableInteractive();
-        });
-
-        // Start move animation
-        this.sceneState = SceneState.ANIMATING;
-        this.animateMove(index, true).catch(err => console.error('animateMove error', err));
-      });
+      zone.setInteractive({ useHandCursor: true });
+      zone.on('pointerover', () => this.showPreview(index));
+      zone.on('pointerout', () => this.clearPreview());
+      zone.on('pointerup', () => this.onPlayerPick(index));
     });
+
+    this.say(NAMES[opponent], LINES[opponent].start);
+    this.startPlayerTurn();
   }
 
   // --------------------------------------------------------------------------
-  // animateMove — orchestrates one full turn's animation pipeline (task 7.1)
+  // Turn state machine
+  // --------------------------------------------------------------------------
+
+  private startPlayerTurn(): void {
+    if (!hasLegalMove(this.board, true)) {
+      this.endGame(getWinner(this.board));
+      return;
+    }
+    this.sceneState = SceneState.PLAYER_TURN;
+    this.applyGlowsForPlayerTurn();
+  }
+
+  private onPlayerPick(index: number): void {
+    if (this.sceneState !== SceneState.PLAYER_TURN) return;
+    if (this.board[index] === 0) return;
+    this.removeAllGlows();
+    this.clearPreview();
+    if (this.resolvedConfig.opponent === 'wan_mahora') this.setPortrait('annoyed');
+    this.runMove(index, true).catch((err) => console.error('player move failed', err));
+  }
+
+  private async runMove(holeIndex: number, isPlayer: boolean): Promise<void> {
+    this.sceneState = SceneState.ANIMATING;
+    const result = applyFullMove(this.board, holeIndex, isPlayer);
+    await this.animateMove(holeIndex, isPlayer);
+    this.board = result.board;
+    this.syncVisualsToBoard();
+    this.checkInvariant();
+    if (isPlayer) this.endPlayerTurn(result);
+    else this.endOpponentTurn(result);
+  }
+
+  private endPlayerTurn(result: FullMoveResult): void {
+    const { opponent } = this.resolvedConfig;
+    if (result.captured && result.captureHole !== undefined && (OPP_HOLES as readonly number[]).includes(result.captureHole)) {
+      this.setPortrait('angry');
+      this.say(NAMES[opponent], pick(LINES[opponent].captured));
+    }
+    if (result.extraTurn) {
+      this.say('???', 'Another turn!');
+      this.startPlayerTurn();
+      return;
+    }
+    this.triggerOpponentTurn();
+  }
+
+  private triggerOpponentTurn(): void {
+    if (!hasLegalMove(this.board, false)) {
+      this.endGame(getWinner(this.board));
+      return;
+    }
+    this.sceneState = SceneState.OPP_TURN;
+    const { opponent } = this.resolvedConfig;
+    this.time.delayedCall(700, () => {
+      this.setPortrait('calm');
+      if (this.oppExtraTurnCount === 0) this.say(NAMES[opponent], pick(LINES[opponent].myTurn));
+    });
+    this.time.delayedCall(800 + Math.random() * 400 + 600, () => {
+      const hole = selectOpponentHole(this.board);
+      this.runMove(hole, false).catch((err) => console.error('opponent move failed', err));
+    });
+  }
+
+  private endOpponentTurn(result: FullMoveResult): void {
+    const { opponent } = this.resolvedConfig;
+    if (result.captured) this.say(NAMES[opponent], pick(LINES[opponent].capturing));
+    if (result.extraTurn && this.oppExtraTurnCount < MAX_OPP_EXTRA_TURNS) {
+      this.oppExtraTurnCount++;
+      this.say(NAMES[opponent], pick(LINES[opponent].extra));
+      this.triggerOpponentTurn();
+      return;
+    }
+    this.oppExtraTurnCount = 0;
+    this.startPlayerTurn();
+  }
+
+  private endGame(result: GameResult): void {
+    this.sceneState = SceneState.GAME_OVER;
+    this.removeAllGlows();
+    this.clearPreview();
+    this.holes.forEach((h) => h.zone.disableInteractive());
+    this.setPortrait(result === 'player' ? 'angry' : 'calm');
+
+    const overlay = this.add.container(0, 0).setDepth(100);
+    const dim = this.add.rectangle(960, 540, 1920, 1080, 0x000000, 0.55).setInteractive();
+    const panel = this.add.rectangle(960, 540, 600, 300, 0x140c0a, 0.92).setStrokeStyle(3, 0xd9a54e);
+    const text = this.add
+      .text(960, 480, resultMessage(result), { fontFamily: 'Georgia, serif', fontSize: '56px', color: '#f6e2b4', fontStyle: 'bold' })
+      .setOrigin(0.5);
+    const score = this.add
+      .text(960, 545, `Your house ${this.board[3]}  ·  ${NAMES[this.resolvedConfig.opponent]} ${this.board[7]}`, {
+        fontFamily: 'Georgia, serif',
+        fontSize: '24px',
+        color: '#d8c8b0',
+      })
+      .setOrigin(0.5);
+    const retry = this.add
+      .text(960, 620, 'RETRY', { fontFamily: 'Courier New, monospace', fontSize: '36px', color: '#ffffff', backgroundColor: '#b8231f', padding: { x: 28, y: 10 } })
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true });
+    retry.on('pointerup', () => this.scene.restart(this.resolvedConfig));
+    overlay.add([dim, panel, text, score, retry]);
+  }
+
+  // --------------------------------------------------------------------------
+  // Animation pipeline: SeedStep[] → sequential Promise chain
   // --------------------------------------------------------------------------
 
   protected async animateMove(holeIndex: number, isPlayer: boolean): Promise<void> {
-    this.sceneState = SceneState.ANIMATING;
-
-    // Enumerate every seed-movement event for this turn.
     const steps = getSeedPath(this.board, holeIndex, isPlayer);
+    const live: number[] = [...this.board];
+    const dir = isPlayer ? 'up' : 'down';
 
-    // Sync labels to the current board state before the first arc.
-    this.updateLabels(this.board);
+    const pickUp = (hole: number) => {
+      this.clearHoleSeeds(hole);
+      live[hole] = 0;
+      this.holes[hole].label.setText('0');
+    };
 
-    // Live per-hole seed counters used during animation so resting sprites
-    // build up correctly before applyFullMove is called at the end.
-    // We start from the current board and apply each sow/tembak as it plays.
-    const liveCount: number[] = [...this.board];
+    pickUp(holeIndex);
+    await this.moveHandTo(this.holes[holeIndex], dir);
 
-    // Remove resting seed sprites from the source hole so they don't overlap arcs.
-    this.clearSourceHoleSeeds(holeIndex);
-    liveCount[holeIndex] = 0; // source hole is now visually empty
-
-    // Track whether we've already cleared the tembak holes so we don't double-clear.
     let tembakCleared = false;
-    let currentSource = holeIndex; // tracks the keep-sow source for clearSourceHoleSeeds
-
+    let prev = holeIndex;
     for (const step of steps) {
-      switch (step.type) {
-        case 'sow':
-          await this.animateSowStep(step, liveCount);
-          break;
-
-        case 'keepSowing': {
-          // The keep-sow source hole now needs its resting seeds cleared
-          // before we pick them all up and continue sowing.
-          if (step.fromHole !== currentSource) {
-            this.clearSourceHoleSeeds(step.fromHole);
-            liveCount[step.fromHole] = 0;
-            currentSource = step.fromHole;
-          }
-          await this.animateKeepSowingStep(step);
-          break;
-        }
-
-        case 'extraTurn':
-          await this.animateExtraTurnStep(step, liveCount);
-          break;
-
-        case 'tembak': {
-          // The first tembak step has fromHole === landing hole.
-          // Subsequent tembak steps have fromHole === opposite hole.
-          // We clear both holes exactly once, on the first tembak step.
-          if (!tembakCleared) {
-            const firstTembak = step;
-            const oppStep = steps.find(
-              s => s.type === 'tembak' && s.fromHole !== firstTembak.fromHole,
-            );
-            const oppositeHole = oppStep?.fromHole ?? -1;
-            if (oppositeHole !== -1) {
-              this.clearTembakSeeds(firstTembak.fromHole, oppositeHole);
-              liveCount[firstTembak.fromHole] = 0;
-              liveCount[oppositeHole] = 0;
-            }
-            tembakCleared = true;
-          }
-          await this.animateTembakStep(step, liveCount);
-          break;
-        }
+      if (step.type === 'keepSowing') {
+        this.showHand(step.fromHole, 'fist', dir);
+        await this.delay(220);
+        pickUp(step.fromHole);
+        prev = step.fromHole;
+        continue;
       }
+      if (step.type === 'tembak' && !tembakCleared) {
+        const opp = steps.find((s) => s.type === 'tembak' && s.fromHole !== step.fromHole)?.fromHole;
+        this.clearHoleSeeds(step.fromHole);
+        live[step.fromHole] = 0;
+        this.holes[step.fromHole].label.setText('0');
+        if (opp !== undefined) {
+          this.clearHoleSeeds(opp);
+          live[opp] = 0;
+          this.holes[opp].label.setText('0');
+        }
+        tembakCleared = true;
+        this.cameras.main.shake(120, 0.004);
+      }
+      if (step.type === 'extraTurn') continue; // marker only; the last 'sow' already landed in the house
+      const from = step.type === 'tembak' ? step.fromHole : prev;
+      await this.animateSeed(step, from, live, dir);
+      if (step.type === 'sow') prev = step.toHole;
     }
 
-    await this.finalizeMoveBoard(holeIndex, isPlayer);
-
-    // Hide the hand sprite after the full move completes
-    this.handSprite.setVisible(false);
+    this.tweens.add({ targets: this.handSprite, y: this.handSprite.y + (isPlayer ? 400 : -400), alpha: 0, duration: 260 });
+    await this.delay(260);
+    this.handSprite.setVisible(false).setAlpha(1);
   }
 
-  // --------------------------------------------------------------------------
-  // animateSowArc — shared parabolic-arc helper (tasks 7.2, 7.4, 7.5)
-  //
-  // Tweens `sprite` from (fromX, fromY) to (toX, toY) along a parabola with the
-  // midpoint lifted by ARC px. The hand sprite follows every frame.
-  // After the tween completes, the hand texture swaps to 'hand_open'.
-  // --------------------------------------------------------------------------
+  private showHand(hole: number, pose: 'fist' | 'open', dir: 'up' | 'down'): void {
+    const h = this.holes[hole];
+    this.handSprite
+      .setTexture(`hand_${pose}_${dir}`)
+      .setOrigin(0.5, dir === 'up' ? 0.02 : 0.98)
+      .setPosition(h.x, h.y)
+      .setVisible(true);
+  }
 
-  private animateSowArc(
-    fromX: number,
-    fromY: number,
-    toX: number,
-    toY: number,
-    sprite: Phaser.GameObjects.Image,
-  ): Promise<void> {
-    const ARC = 80;
-    const DURATION = 200;
+  private async moveHandTo(h: HoleData, dir: 'up' | 'down'): Promise<void> {
+    const startY = dir === 'up' ? 1250 : -200;
+    this.handSprite
+      .setTexture(`hand_open_${dir}`)
+      .setOrigin(0.5, dir === 'up' ? 0.02 : 0.98)
+      .setPosition(h.x, startY)
+      .setAlpha(1)
+      .setVisible(true);
+    await new Promise<void>((resolve) =>
+      this.tweens.add({ targets: this.handSprite, y: h.y, duration: 300, ease: 'Quad.easeOut', onComplete: () => resolve() }),
+    );
+    this.handSprite.setTexture(`hand_fist_${dir}`);
+    await this.delay(120);
+  }
 
-    sprite.setPosition(fromX, fromY).setVisible(true).setActive(true).setDepth(25);
+  private animateSeed(step: SeedStep, fromHole: number, live: number[], dir: 'up' | 'down'): Promise<void> {
+    const from = this.holes[fromHole];
+    const to = this.holes[step.toHole];
+    const seed = this.pool.acquire(getSeedColour(step.seedIndex)).setDepth(34).setPosition(from.x, from.y);
+    this.handSprite.setTexture(`hand_fist_${dir}`);
 
-    return new Promise<void>(resolve => {
-      this.tweens.add({
-        targets: sprite,
-        x: toX,
-        duration: DURATION,
-        ease: 'Linear',
-        onUpdate: (tween) => {
-          // Use raw time progress (elapsed/duration) so the parabola shape is
-          // geometrically correct regardless of easing applied to x.
-          const t = tween.elapsed / tween.duration; // 0 → 1, linear
-          const y = fromY + (toY - fromY) * t - ARC * Math.sin(Math.PI * t);
-          sprite.setY(y);
-          // Move hand to match seed position
-          this.handSprite.setPosition(sprite.x, sprite.y);
+    return new Promise<void>((resolve) => {
+      this.tweens.addCounter({
+        from: 0,
+        to: 1,
+        duration: SOW_MS,
+        onUpdate: (tw) => {
+          const t = tw.getValue() ?? 0;
+          const x = from.x + (to.x - from.x) * t;
+          const y = from.y + (to.y - from.y) * t - ARC * Math.sin(Math.PI * t);
+          seed.setPosition(x, y);
+          this.handSprite.setPosition(x, y);
         },
         onComplete: () => {
-          // Ensure sprite lands exactly at destination (floating-point safety)
-          sprite.setPosition(toX, toY);
-          // Drop: swap hand to open
-          this.handSprite.setTexture('hand_open').setPosition(toX, toY);
-          resolve();
+          this.handSprite.setTexture(`hand_open_${dir}`).setPosition(to.x, to.y);
+          this.pool.release(seed);
+          live[step.toHole]++;
+          this.populateRestingSeeds(to, live[step.toHole]);
+          to.label.setText(String(live[step.toHole]));
+          this.time.delayedCall(40, resolve);
         },
       });
     });
   }
 
-  // --------------------------------------------------------------------------
-  // animateSowStep — arc one seed into its destination hole (task 7.2)
-  // --------------------------------------------------------------------------
-
-  private async animateSowStep(step: SeedStep, liveCount: number[]): Promise<void> {
-    const from = this.holes[step.fromHole];
-    const to   = this.holes[step.toHole];
-
-    const seed = this.pool.acquire(getSeedColour(step.seedIndex));
-
-    // Always show hand_fist at the pick-up point before each seed arc.
-    // The hand may be visible from a previous drop (hand_open) — reset it here
-    // so the fist→open swap is consistent on every sow step, not just the first.
-    this.handSprite
-      .setTexture('hand_fist')
-      .setPosition(from.x, from.y)
-      .setVisible(true)
-      .setDepth(35); // above seeds (depth 25) and glow (depth 12)
-
-    await this.animateSowArc(from.x, from.y, to.x, to.y, seed);
-
-    // Release the flying sprite and show the seed as resting in the destination hole.
-    // Increment liveCount (not this.board) so the count is correct before
-    // applyFullMove is called at the end of the full move.
-    this.pool.release(seed);
-    liveCount[step.toHole]++;
-    this.populateRestingSeeds(this.holes[step.toHole], liveCount[step.toHole]);
-  }
-
-  // --------------------------------------------------------------------------
-  // delay — Phaser-safe Promise wrapper around this.time.delayedCall (task 7.3)
-  // --------------------------------------------------------------------------
-
   protected delay(ms: number): Promise<void> {
-    return new Promise<void>(resolve => this.time.delayedCall(ms, resolve));
+    return new Promise<void>((resolve) => this.time.delayedCall(ms, resolve));
   }
 
   // --------------------------------------------------------------------------
-  // animateKeepSowingStep — brief pause + move hand to new source hole (task 7.3)
+  // Visual sync and invariant
   // --------------------------------------------------------------------------
 
-  private async animateKeepSowingStep(step: SeedStep): Promise<void> {
-    // Reposition hand back to fist at the keep-sow source hole
-    const src = this.holes[step.fromHole];
-    this.handSprite
-      .setTexture('hand_fist')
-      .setPosition(src.x, src.y)
-      .setVisible(true)
-      .setDepth(35); // consistent with animateSowStep depth
-
-    // 150 ms pause — represents visually grasping the accumulated seeds (task 7.3)
-    await this.delay(150);
-  }
-
-  // --------------------------------------------------------------------------
-  // animateExtraTurnStep — arc final seed into house, show "Your turn again!" (task 7.4)
-  // --------------------------------------------------------------------------
-
-  private async animateExtraTurnStep(step: SeedStep): Promise<void> {
-    const from = this.holes[step.fromHole];
-    const to   = this.holes[step.toHole];
-
-    const seed = this.pool.acquire(getSeedColour(step.seedIndex));
-    await this.animateSowArc(from.x, from.y, to.x, to.y, seed);
-    this.pool.release(seed);
-
-    // Hide hand after the drop
-    this.handSprite.setVisible(false);
-
-    // Display "Your turn again!" for 800 ms
-    this.gameplayText.setText('Your turn again!').setVisible(true);
-    await new Promise<void>(resolve => this.time.delayedCall(800, resolve));
-    this.gameplayText.setVisible(false);
-  }
-
-  // --------------------------------------------------------------------------
-  // animateTembakStep — arc a captured seed into the mover's house (task 7.5)
-  // --------------------------------------------------------------------------
-
-  private async animateTembakStep(step: SeedStep): Promise<void> {
-    const from = this.holes[step.fromHole];
-    const to   = this.holes[step.toHole];
-
-    const seed = this.pool.acquire(getSeedColour(step.seedIndex));
-
-    // Always reset to hand_fist at each tembak pick-up point (landing seed or
-    // captured seeds from the opposite hole), so the fist→open swap is consistent.
-    this.handSprite
-      .setTexture('hand_fist')
-      .setPosition(from.x, from.y)
-      .setVisible(true)
-      .setDepth(35);
-
-    await this.animateSowArc(from.x, from.y, to.x, to.y, seed);
-    this.pool.release(seed);
-  }
-
-  // --------------------------------------------------------------------------
-  // finalizeMoveBoard — apply the completed move to the board state (task 7.7)
-  // --------------------------------------------------------------------------
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected async finalizeMoveBoard(_holeIndex: number, _isPlayer: boolean): Promise<void> {}
-
-  // --------------------------------------------------------------------------
-  // updateLabels — refresh seed-count text for every hole (task 4.2)
-  // Wired to move animations in task 7.1; declared here so the method exists.
-  // --------------------------------------------------------------------------
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected updateLabels(board: Board): void {
-    this.holes.forEach((holeData, i) => {
-      holeData.label.setText(String(board[i]));
+  private syncVisualsToBoard(): void {
+    this.holes.forEach((h) => {
+      this.populateRestingSeeds(h, this.board[h.index]);
+      h.label.setText(String(this.board[h.index]));
     });
   }
 
-  // --------------------------------------------------------------------------
-  // populateRestingSeeds — sync visible seed sprites in a hole to a count (task 5.2)
-  // --------------------------------------------------------------------------
+  private checkInvariant(): void {
+    const total = totalSeeds(this.board);
+    if (total !== this.initialSeedCount) {
+      console.error('Board invariant failed: total', total, 'expected', this.initialSeedCount, [...this.board]);
+    }
+    this.holes.forEach((h, i) => {
+      if (Number(h.label.text) !== this.board[i]) {
+        console.error('Board invariant failed: label mismatch at index', i, [...this.board]);
+      }
+    });
+  }
 
   private populateRestingSeeds(holeData: HoleData, count: number): void {
-    // Release all existing resting seeds back to the pool
-    holeData.restingSeeds.forEach(img => this.pool.release(img));
+    holeData.restingSeeds.forEach((img) => this.pool.release(img));
     holeData.restingSeeds = [];
-
-    // Acquire fresh seeds and scatter them in a small cluster around the hole centre
     for (let i = 0; i < count; i++) {
-      const img = this.pool.acquire(getSeedColour(i));
-      const offsetX = (Math.random() - 0.5) * 30; // ±15 px
-      const offsetY = (Math.random() - 0.5) * 20; // ±10 px
-      img
-        .setPosition(holeData.x + offsetX, holeData.y + offsetY)
-        .setDepth(15);
+      const { dx, dy } = seedOffset(holeData.index, i);
+      const img = this.pool.acquire(getSeedColour(i + holeData.index)).setPosition(holeData.x + dx, holeData.y + dy).setDepth(15 + dy / 100);
       holeData.restingSeeds.push(img);
     }
   }
 
-  // --------------------------------------------------------------------------
-  // clearSourceHoleSeeds — release all resting sprites for the picked hole (task 5.3)
-  // Called from animateMove (task 7.1) before the first arc animation.
-  // --------------------------------------------------------------------------
-
-  protected clearSourceHoleSeeds(holeIndex: number): void {
-    const holeData = this.holes[holeIndex];
-    holeData.restingSeeds.forEach(img => this.pool.release(img));
-    holeData.restingSeeds = [];
+  private clearHoleSeeds(holeIndex: number): void {
+    const h = this.holes[holeIndex];
+    h.restingSeeds.forEach((img) => this.pool.release(img));
+    h.restingSeeds = [];
   }
 
   // --------------------------------------------------------------------------
-  // clearTembakSeeds — release resting sprites from both holes in a capture (task 5.4)
-  // Called from the tembak step in animateMove (task 7.5).
-  // --------------------------------------------------------------------------
-
-  protected clearTembakSeeds(landingHoleIndex: number, oppositeHoleIndex: number): void {
-    for (const idx of [landingHoleIndex, oppositeHoleIndex]) {
-      const holeData = this.holes[idx];
-      holeData.restingSeeds.forEach(img => this.pool.release(img));
-      holeData.restingSeeds = [];
-    }
-  }
-
-  // --------------------------------------------------------------------------
-  // applyGlow — add a pulsing gold glow overlay to a single hole (task 6.1)
-  // --------------------------------------------------------------------------
-
-  private applyGlow(holeData: HoleData): void {
-    const gfx = this.add.graphics();
-    gfx.fillStyle(0xffd700, 0.4);
-    gfx.fillCircle(holeData.x, holeData.y, 40);
-    gfx.setDepth(12);
-
-    const tween = this.tweens.add({
-      targets: gfx,
-      alpha: { from: 0.15, to: 0.55 },
-      yoyo: true,
-      loop: -1,
-      duration: 600,
-      ease: 'Sine.easeInOut',
-    });
-
-    holeData.glowTweens.push(tween);
-    this.glowOverlays.push(gfx);
-    holeData.isGlowing = true;
-  }
-
-  // --------------------------------------------------------------------------
-  // removeAllGlows — stop and tear down every active glow (task 6.2)
-  // --------------------------------------------------------------------------
-
-  private removeAllGlows(): void {
-    this.holes.forEach(holeData => {
-      holeData.glowTweens.forEach(t => t.stop());
-      holeData.glowTweens = [];
-      holeData.isGlowing = false;
-    });
-    this.glowOverlays.forEach(g => g.destroy());
-    this.glowOverlays = [];
-  }
-
-  // --------------------------------------------------------------------------
-  // applyGlowsForPlayerTurn — glow every non-empty player hole (task 6.2)
-  // Called at the end of create() and again from the turn state machine.
+  // Glow + hover preview
   // --------------------------------------------------------------------------
 
   private applyGlowsForPlayerTurn(): void {
     this.removeAllGlows();
-    (PLAYER_HOLES as readonly number[]).forEach(i => {
-      if (this.board[i] > 0) {
-        this.applyGlow(this.holes[i]);
-      }
+    (PLAYER_HOLES as readonly number[]).forEach((i) => {
+      if (this.board[i] === 0) return;
+      const h = this.holes[i];
+      const gfx = this.add.graphics().setDepth(12);
+      gfx.lineStyle(5, 0xffd36b, 1).strokeEllipse(h.x, h.y, 150, 78);
+      gfx.fillStyle(0xffd36b, 0.12).fillEllipse(h.x, h.y, 150, 78);
+      const tween = this.tweens.add({ targets: gfx, alpha: { from: 0.35, to: 1 }, yoyo: true, loop: -1, duration: 650, ease: 'Sine.easeInOut' });
+      h.glowTweens.push(tween);
+      h.isGlowing = true;
+      this.glowOverlays.push(gfx);
     });
   }
+
+  private removeAllGlows(): void {
+    this.holes.forEach((h) => {
+      h.glowTweens.forEach((t) => t.stop());
+      h.glowTweens = [];
+      h.isGlowing = false;
+    });
+    this.glowOverlays.forEach((g) => g.destroy());
+    this.glowOverlays = [];
+  }
+
+  private showPreview(index: number): void {
+    this.clearPreview();
+    if (this.sceneState !== SceneState.PLAYER_TURN || this.board[index] === 0) return;
+    const result = previewLastSeed(this.board, index, true);
+    const target = this.holes[result.landingHole];
+    const isHouse = result.landingHole === 3 || result.landingHole === 7;
+    const gfx = this.add.graphics().setDepth(13);
+    gfx.lineStyle(4, 0x9fe6ff, 0.95).strokeEllipse(target.x, target.y, isHouse ? 230 : 140, isHouse ? 150 : 72);
+    gfx.fillStyle(0x9fe6ff, 0.18).fillEllipse(target.x, target.y, isHouse ? 230 : 140, isHouse ? 150 : 72);
+    this.previewGfx = gfx;
+    const hint = result.willExtraTurn ? 'Lands in your house: extra turn!' : result.willCapture ? 'Lands in an empty hole: capture!' : 'Your last seed lands here.';
+    this.say('???', hint);
+  }
+
+  private clearPreview(): void {
+    this.previewGfx?.destroy();
+    this.previewGfx = null;
+  }
+
+  // --------------------------------------------------------------------------
+  // Portrait + dialogue
+  // --------------------------------------------------------------------------
+
+  private setPortrait(pose: 'calm' | 'annoyed' | 'angry'): void {
+    const { opponent } = this.resolvedConfig;
+    const key = `${opponent}_${pose}`;
+    this.portraitSprite.setTexture(this.textures.exists(key) ? key : `${opponent}_calm`);
+  }
+
+  private say(name: string, text: string): void {
+    this.dialogueName.setText(name);
+    const size = name.length > 10 ? 22 : 26;
+    this.dialogueName.setFontSize(size);
+    this.dialogueText.setText(text);
+  }
+}
+
+function pick<T>(arr: readonly T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
 }
