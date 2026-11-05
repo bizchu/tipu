@@ -70,7 +70,7 @@ Build `BoardScene.ts`, the Phaser 3 scene that hosts every playable congkak roun
   - [x] 6.4 Attach a `pointerup` listener to each player hole zone; on click, guard with `sceneState === SceneState.PLAYER_TURN` before proceeding; call `removeAllGlows()`, disable all player zone input, and begin the move animation
     - _Requirements: 6.5, 6.6_
 
-- [ ] 7. Implement the animation pipeline — `SeedStep[]` → sequential Promise chain (Requirement 7)
+- [~] 7. Implement the animation pipeline — `SeedStep[]` → sequential Promise chain (Requirement 7)
   - [x] 7.1 Implement `animateMove(holeIndex: number, isPlayer: boolean): Promise<void>` — call `getSeedPath(board, holeIndex, isPlayer)` to get the steps; set `sceneState` to `ANIMATING`; call `updateLabels` before the first arc
     - _Requirements: 7.1, 4.3_
   - [-] 7.2 For each `SeedStep` of type `'sow'`, animate a seed sprite from `fromHole` position to `toHole` position along a parabolic arc (midpoint lifted by ~80 px) using a Phaser tween lasting 200 ms; return a Promise that resolves when the tween completes

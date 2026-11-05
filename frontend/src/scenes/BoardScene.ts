@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { Board, OPP_HOLES, PLAYER_HOLES, PLAYER_HOUSE, OPP_HOUSE, makeBoard, previewLastSeed, getSeedPath, SeedStep } from '../logic/congkak';
+import { Board, OPP_HOLES, PLAYER_HOLES, PLAYER_HOUSE, OPP_HOUSE, makeBoard, applyFullMove, totalSeeds, previewLastSeed, getSeedPath, SeedStep } from '../logic/congkak';
 
 // ---------------------------------------------------------------------------
 // RoundConfig — passed via scene.start('BoardScene', config)
@@ -375,7 +375,7 @@ export default class BoardScene extends Phaser.Scene {
     this.handSprite = this.add
       .image(0, 0, 'hand_fist')
       .setVisible(false)
-      .setDepth(26);
+      .setDepth(35); // above seeds (25) and glow overlays (12)
 
     // ---- populate resting seeds for initial board state (task 5.2) ----
     this.holes.forEach(holeData => {
@@ -456,24 +456,39 @@ export default class BoardScene extends Phaser.Scene {
     // Sync labels to the current board state before the first arc.
     this.updateLabels(this.board);
 
+    // Live per-hole seed counters used during animation so resting sprites
+    // build up correctly before applyFullMove is called at the end.
+    // We start from the current board and apply each sow/tembak as it plays.
+    const liveCount: number[] = [...this.board];
+
     // Remove resting seed sprites from the source hole so they don't overlap arcs.
     this.clearSourceHoleSeeds(holeIndex);
+    liveCount[holeIndex] = 0; // source hole is now visually empty
 
     // Track whether we've already cleared the tembak holes so we don't double-clear.
     let tembakCleared = false;
+    let currentSource = holeIndex; // tracks the keep-sow source for clearSourceHoleSeeds
 
     for (const step of steps) {
       switch (step.type) {
         case 'sow':
-          await this.animateSowStep(step);
+          await this.animateSowStep(step, liveCount);
           break;
 
-        case 'keepSowing':
+        case 'keepSowing': {
+          // The keep-sow source hole now needs its resting seeds cleared
+          // before we pick them all up and continue sowing.
+          if (step.fromHole !== currentSource) {
+            this.clearSourceHoleSeeds(step.fromHole);
+            liveCount[step.fromHole] = 0;
+            currentSource = step.fromHole;
+          }
           await this.animateKeepSowingStep(step);
           break;
+        }
 
         case 'extraTurn':
-          await this.animateExtraTurnStep(step);
+          await this.animateExtraTurnStep(step, liveCount);
           break;
 
         case 'tembak': {
@@ -481,8 +496,6 @@ export default class BoardScene extends Phaser.Scene {
           // Subsequent tembak steps have fromHole === opposite hole.
           // We clear both holes exactly once, on the first tembak step.
           if (!tembakCleared) {
-            // Find the opposite hole: it's the fromHole of any tembak step
-            // where fromHole !== the landing hole (i.e. the second+ steps).
             const firstTembak = step;
             const oppStep = steps.find(
               s => s.type === 'tembak' && s.fromHole !== firstTembak.fromHole,
@@ -490,10 +503,12 @@ export default class BoardScene extends Phaser.Scene {
             const oppositeHole = oppStep?.fromHole ?? -1;
             if (oppositeHole !== -1) {
               this.clearTembakSeeds(firstTembak.fromHole, oppositeHole);
+              liveCount[firstTembak.fromHole] = 0;
+              liveCount[oppositeHole] = 0;
             }
             tembakCleared = true;
           }
-          await this.animateTembakStep(step);
+          await this.animateTembakStep(step, liveCount);
           break;
         }
       }
@@ -532,13 +547,17 @@ export default class BoardScene extends Phaser.Scene {
         duration: DURATION,
         ease: 'Linear',
         onUpdate: (tween) => {
-          const t = tween.progress; // 0 → 1
+          // Use raw time progress (elapsed/duration) so the parabola shape is
+          // geometrically correct regardless of easing applied to x.
+          const t = tween.elapsed / tween.duration; // 0 → 1, linear
           const y = fromY + (toY - fromY) * t - ARC * Math.sin(Math.PI * t);
           sprite.setY(y);
           // Move hand to match seed position
           this.handSprite.setPosition(sprite.x, sprite.y);
         },
         onComplete: () => {
+          // Ensure sprite lands exactly at destination (floating-point safety)
+          sprite.setPosition(toX, toY);
           // Drop: swap hand to open
           this.handSprite.setTexture('hand_open').setPosition(toX, toY);
           resolve();
@@ -551,25 +570,37 @@ export default class BoardScene extends Phaser.Scene {
   // animateSowStep — arc one seed into its destination hole (task 7.2)
   // --------------------------------------------------------------------------
 
-  private async animateSowStep(step: SeedStep): Promise<void> {
+  private async animateSowStep(step: SeedStep, liveCount: number[]): Promise<void> {
     const from = this.holes[step.fromHole];
     const to   = this.holes[step.toHole];
 
     const seed = this.pool.acquire(getSeedColour(step.seedIndex));
 
-    // Show hand at pick-up point for the very first sow in a move
-    if (!this.handSprite.visible) {
-      this.handSprite
-        .setTexture('hand_fist')
-        .setPosition(from.x, from.y)
-        .setVisible(true)
-        .setDepth(26);
-    }
+    // Always show hand_fist at the pick-up point before each seed arc.
+    // The hand may be visible from a previous drop (hand_open) — reset it here
+    // so the fist→open swap is consistent on every sow step, not just the first.
+    this.handSprite
+      .setTexture('hand_fist')
+      .setPosition(from.x, from.y)
+      .setVisible(true)
+      .setDepth(35); // above seeds (depth 25) and glow (depth 12)
 
     await this.animateSowArc(from.x, from.y, to.x, to.y, seed);
 
+    // Release the flying sprite and show the seed as resting in the destination hole.
+    // Increment liveCount (not this.board) so the count is correct before
+    // applyFullMove is called at the end of the full move.
     this.pool.release(seed);
-    this.populateRestingSeeds(this.holes[step.toHole], this.board[step.toHole] + 1);
+    liveCount[step.toHole]++;
+    this.populateRestingSeeds(this.holes[step.toHole], liveCount[step.toHole]);
+  }
+
+  // --------------------------------------------------------------------------
+  // delay — Phaser-safe Promise wrapper around this.time.delayedCall (task 7.3)
+  // --------------------------------------------------------------------------
+
+  protected delay(ms: number): Promise<void> {
+    return new Promise<void>(resolve => this.time.delayedCall(ms, resolve));
   }
 
   // --------------------------------------------------------------------------
@@ -579,11 +610,14 @@ export default class BoardScene extends Phaser.Scene {
   private async animateKeepSowingStep(step: SeedStep): Promise<void> {
     // Reposition hand back to fist at the keep-sow source hole
     const src = this.holes[step.fromHole];
-    this.handSprite.setTexture('hand_fist').setPosition(src.x, src.y).setVisible(true);
+    this.handSprite
+      .setTexture('hand_fist')
+      .setPosition(src.x, src.y)
+      .setVisible(true)
+      .setDepth(35); // consistent with animateSowStep depth
 
-    return new Promise<void>(resolve => {
-      this.time.delayedCall(150, resolve);
-    });
+    // 150 ms pause — represents visually grasping the accumulated seeds (task 7.3)
+    await this.delay(150);
   }
 
   // --------------------------------------------------------------------------
@@ -617,14 +651,13 @@ export default class BoardScene extends Phaser.Scene {
 
     const seed = this.pool.acquire(getSeedColour(step.seedIndex));
 
-    // Show hand at pick-up point for the first tembak seed
-    if (!this.handSprite.visible) {
-      this.handSprite
-        .setTexture('hand_fist')
-        .setPosition(from.x, from.y)
-        .setVisible(true)
-        .setDepth(26);
-    }
+    // Always reset to hand_fist at each tembak pick-up point (landing seed or
+    // captured seeds from the opposite hole), so the fist→open swap is consistent.
+    this.handSprite
+      .setTexture('hand_fist')
+      .setPosition(from.x, from.y)
+      .setVisible(true)
+      .setDepth(35);
 
     await this.animateSowArc(from.x, from.y, to.x, to.y, seed);
     this.pool.release(seed);
