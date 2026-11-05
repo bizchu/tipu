@@ -11,10 +11,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "phaser": "3.87.0"
+    "phaser": "3.87.0",
+    "three": "0.170.0"
   },
   "devDependencies": {
     "@types/node": "22.15.30",
+    "@types/three": "0.170.0",
     "fast-check": "3.23.2",
     "typescript": "5.8.3",
     "vite": "6.3.5",

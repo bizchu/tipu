@@ -1,0 +1,15 @@
+{
+  "prologue": [
+    { "name": "???", "pose": "mahsuri:confused", "text": "...Where am I?" },
+    { "name": "???", "pose": "mahsuri:confused", "text": "What is this place?" },
+    { "name": "???", "pose": "mahsuri:scared", "text": "I can't remember anything... not even my name." },
+    { "name": "Wan Mahora", "pose": "wan_mahora:calm", "text": "Ah... you're finally awake." },
+    { "name": "Wan Mahora", "pose": "wan_mahora:calm", "text": "Don't look so frightened, sayang." },
+    { "name": "Wan Mahora", "pose": "wan_mahora:calm", "text": "Play a game of congkak with me. Win, and I'll help you remember." },
+    { "name": "Wan Mahora", "pose": "wan_mahora:calm", "text": "Go on. You go first." }
+  ],
+  "chapters": {
+    "1": { "bab": "BAB 1  ·  CHAPTER 1", "title": "Pembohongan", "subtitle": "The Lie", "opponent": "Wan Mahora" },
+    "2": { "bab": "BAB 2  ·  CHAPTER 2", "title": "Kebenaran", "subtitle": "The Truth", "opponent": "The Village Chief" }
+  }
+}

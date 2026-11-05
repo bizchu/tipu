@@ -27,6 +27,8 @@ import {
   selectOpponentHole,
 } from './boardScene.helpers';
 import { TAPE_HUD_ASSETS, TapeHud } from '../ui/TapeHud';
+import { addAmbience, preloadAmbience } from '../ui/Ambience';
+import { HelpButton } from '../ui/HelpButton';
 
 export * from './boardScene.helpers';
 
@@ -97,6 +99,7 @@ export default class BoardScene extends Phaser.Scene {
 
   private initialSeedCount = 0;
   private oppExtraTurnCount = 0;
+  private wrongClicks = 0;
   private dialogueName!: Phaser.GameObjects.Text;
   private dialogueText!: Phaser.GameObjects.Text;
   private handSprite!: Phaser.GameObjects.Image;
@@ -133,6 +136,7 @@ export default class BoardScene extends Phaser.Scene {
       this.load.image(`hand_${h}_down`, `game/hand_${h}_down.png`);
     }
     for (const [key, path] of TAPE_HUD_ASSETS) this.load.image(key, path);
+    preloadAmbience(this);
   }
 
   // --------------------------------------------------------------------------
@@ -145,9 +149,11 @@ export default class BoardScene extends Phaser.Scene {
     this.glowOverlays = [];
     this.previewGfx = null;
     this.oppExtraTurnCount = 0;
+    this.wrongClicks = 0;
+    HelpButton.show(this.game);
 
     // Background
-    this.add.image(960, 540, 'bg_' + background).setDisplaySize(1920, 1080).setDepth(0);
+    addAmbience(this, background);
 
     // Opponent portrait — behind the board. Never tinted or faded.
     this.portraitSprite = this.add
@@ -239,6 +245,11 @@ export default class BoardScene extends Phaser.Scene {
       zone.on('pointerup', () => this.onPlayerPick(index));
     });
 
+    (OPP_HOLES as readonly number[]).forEach((index) => {
+      this.holes[index].zone.setInteractive();
+      this.holes[index].zone.on('pointerup', () => this.onWrongClick('Those are her holes. Pick one of the glowing holes on your side.'));
+    });
+
     this.say(NAMES[opponent], LINES[opponent].start);
     this.startPlayerTurn();
   }
@@ -256,9 +267,24 @@ export default class BoardScene extends Phaser.Scene {
     this.applyGlowsForPlayerTurn();
   }
 
+  private onWrongClick(tip: string): void {
+    if (this.sceneState !== SceneState.PLAYER_TURN) return;
+    this.wrongClicks++;
+    this.say('???', tip);
+    if (this.wrongClicks >= 2) {
+      HelpButton.pulse();
+      this.say('???', tip + ' Stuck? Press ? for help.');
+    }
+  }
+
   private onPlayerPick(index: number): void {
     if (this.sceneState !== SceneState.PLAYER_TURN) return;
-    if (this.board[index] === 0) return;
+    if (this.board[index] === 0) {
+      this.onWrongClick('That hole is empty. Pick a glowing one.');
+      return;
+    }
+    this.wrongClicks = 0;
+    HelpButton.stopPulse();
     this.removeAllGlows();
     this.clearPreview();
     if (this.resolvedConfig.opponent === 'wan_mahora') this.setPortrait('annoyed');
@@ -340,11 +366,26 @@ export default class BoardScene extends Phaser.Scene {
         color: '#d8c8b0',
       })
       .setOrigin(0.5);
+    const won = result === 'player';
     const retry = this.add
-      .text(960, 620, 'RETRY', { fontFamily: 'Courier New, monospace', fontSize: '36px', color: '#ffffff', backgroundColor: '#b8231f', padding: { x: 28, y: 10 } })
+      .text(960, 620, won ? 'CONTINUE ▶' : '◀◀ REWIND & RETRY', {
+        fontFamily: 'Courier New, monospace',
+        fontSize: '34px',
+        color: '#ffffff',
+        backgroundColor: won ? '#3a5a2a' : '#b8231f',
+        padding: { x: 28, y: 10 },
+      })
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true });
-    retry.on('pointerup', () => this.scene.restart(this.resolvedConfig));
+    retry.on('pointerup', () => {
+      if (!won) {
+        this.scene.restart(this.resolvedConfig);
+      } else if (this.resolvedConfig.round === 1) {
+        this.scene.start('ChapterCard', { chapter: 2, next: 'BoardScene', nextData: { round: 2 } });
+      } else {
+        this.scene.start('ToBeContinued');
+      }
+    });
     overlay.add([dim, panel, text, score, retry]);
   }
 
