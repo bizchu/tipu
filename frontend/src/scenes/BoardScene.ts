@@ -29,6 +29,8 @@ import {
 import { TAPE_HUD_ASSETS, TapeHud } from '../ui/TapeHud';
 import { addAmbience, preloadAmbience } from '../ui/Ambience';
 import { HelpButton } from '../ui/HelpButton';
+import { CHEAT_TELLS, CheatPlan, CheatedMove, TAPE, damage, planCheats, playOpponentMove } from '../logic/cheats';
+import { REPLAY_ASSETS, ReplayMove, playReplay } from '../ui/Replay';
 
 export * from './boardScene.helpers';
 
@@ -73,6 +75,8 @@ const LINES = {
     extra: ['Again? How lucky for me.', 'One more, sayang.'],
     captured: ['Tch... you took those?', 'Cheeky girl.'],
     capturing: ['Mine now, sayang.', 'Did you see that coming?'],
+    caught: ['Tch... clever girl.', 'Such sharp eyes, sayang.', 'Hmph. Lucky guess.'],
+    clean: ['Accusing me? How rude, sayang.', 'Nothing there, sayang.'],
   },
   village_chief: {
     start: 'Sit. The game begins. You move first.',
@@ -80,6 +84,8 @@ const LINES = {
     extra: ['Again.', 'The law favours me.'],
     captured: ['...Noted.', 'You overstep.'],
     capturing: ['Confiscated.', 'As judged.'],
+    caught: ['You dare accuse me?', '...Very well. Continue.', 'Impertinent.'],
+    clean: ['Baseless accusations.', 'The court finds nothing.'],
   },
 } as const;
 
@@ -106,6 +112,15 @@ export default class BoardScene extends Phaser.Scene {
   private glowOverlays: Phaser.GameObjects.Graphics[] = [];
   private previewGfx: Phaser.GameObjects.Graphics | null = null;
   private seedPoolImages: Phaser.GameObjects.Image[] = [];
+
+  // cheats + rewind
+  private cheatPlan: CheatPlan = new Map();
+  private oppMoveCount = 0;
+  private turnMoves: ReplayMove[] = [];
+  private lastOppTurn: ReplayMove[] = [];
+  private rewinds = 3;
+  private health: number = TAPE.start;
+  private cheatsSeen = 0;
 
   constructor() {
     super({ key: 'BoardScene' });
@@ -136,6 +151,7 @@ export default class BoardScene extends Phaser.Scene {
       this.load.image(`hand_${h}_down`, `game/hand_${h}_down.png`);
     }
     for (const [key, path] of TAPE_HUD_ASSETS) this.load.image(key, path);
+    for (const [key, path] of REPLAY_ASSETS) this.load.image(key, path);
     preloadAmbience(this);
   }
 
@@ -150,6 +166,13 @@ export default class BoardScene extends Phaser.Scene {
     this.previewGfx = null;
     this.oppExtraTurnCount = 0;
     this.wrongClicks = 0;
+    this.cheatPlan = planCheats(this.resolvedConfig.round);
+    this.oppMoveCount = 0;
+    this.turnMoves = [];
+    this.lastOppTurn = [];
+    this.rewinds = 3;
+    this.health = TAPE.start;
+    this.cheatsSeen = 0;
     HelpButton.show(this.game);
 
     // Background
@@ -228,6 +251,8 @@ export default class BoardScene extends Phaser.Scene {
 
     // Tape health HUD (top-right) with ◀◀ REW chip
     this.tapeHud = new TapeHud(this, this.resolvedConfig.round);
+    this.tapeHud.rewChip.setInteractive({ useHandCursor: true }).on('pointerup', () => this.onRewind());
+    this.input.keyboard?.on('keydown-R', () => this.onRewind());
 
     // Hand
     this.handSprite = this.add.image(0, 0, 'hand_fist_up').setVisible(false).setDepth(35);
@@ -329,8 +354,130 @@ export default class BoardScene extends Phaser.Scene {
     });
     this.time.delayedCall(800 + Math.random() * 400 + 600, () => {
       const hole = selectOpponentHole(this.board);
-      this.runMove(hole, false).catch((err) => console.error('opponent move failed', err));
+      this.runOpponentMove(hole).catch((err) => console.error('opponent move failed', err));
     });
+  }
+
+  private async runOpponentMove(hole: number): Promise<void> {
+    this.sceneState = SceneState.ANIMATING;
+    const before = [...this.board] as Board;
+    const planned = this.cheatPlan.get(this.oppMoveCount) ?? null;
+    const move = playOpponentMove(this.board, hole, planned);
+    // a cheat that couldn't happen on this board moves to her next turn
+    if (planned && !move.cheat && !this.cheatPlan.has(this.oppMoveCount + 1)) this.cheatPlan.set(this.oppMoveCount + 1, planned);
+    this.oppMoveCount++;
+
+    await this.animateMove(hole, false, move);
+    if (move.cheat && move.cheat.stepIndex < 0) await this.flicker(move.cheat.type === 'lightsOut' ? 0.92 : 0.6, move.cheat.type === 'lightsOut' ? 700 : 260);
+    if (move.cheat?.type === 'extraSeed') this.initialSeedCount += 1;
+    if (move.cheat) this.cheatsSeen++;
+    this.board = move.finalBoard;
+    this.syncVisualsToBoard();
+    this.checkInvariant();
+    this.turnMoves.push({ before, hole, move });
+    this.endOpponentTurn({ board: move.finalBoard, extraTurn: move.extraTurn, captured: move.captured });
+  }
+
+  /** Lamp flicker: a quick dim of the whole scene (covers cheats in live play). */
+  private flicker(alpha: number, ms: number): Promise<void> {
+    const r = this.add.rectangle(960, 540, 1920, 1080, 0x000000, 0).setDepth(55);
+    return new Promise((resolve) =>
+      this.tweens.add({
+        targets: r,
+        fillAlpha: alpha,
+        duration: ms / 2,
+        yoyo: true,
+        onComplete: () => {
+          r.destroy();
+          resolve();
+        },
+      }),
+    );
+  }
+
+  // --------------------------------------------------------------------------
+  // ◀◀ REW: replay her last turn and catch the cheat
+  // --------------------------------------------------------------------------
+
+  private async onRewind(): Promise<void> {
+    if (this.sceneState !== SceneState.PLAYER_TURN) return;
+    const { opponent, round, background } = this.resolvedConfig;
+    if (this.rewinds <= 0) {
+      this.say('???', 'No rewinds left this round.');
+      return;
+    }
+    if (this.lastOppTurn.length === 0) {
+      this.say('???', 'Nothing to rewind yet. Wait for her move.'.replace('her', opponent === 'wan_mahora' ? 'her' : 'his'));
+      return;
+    }
+    this.sceneState = SceneState.ANIMATING;
+    this.removeAllGlows();
+    this.clearPreview();
+    this.tweens.killTweensOf(this.tapeHud.rewChip);
+    this.tapeHud.rewChip.setScale(1);
+    this.rewinds--;
+    this.tapeHud.setRewinds(this.rewinds);
+    const turn = this.lastOppTurn;
+    this.lastOppTurn = [];
+
+    HelpButton.hide();
+    const result = await playReplay(this, turn, {
+      background,
+      slow: round === 1 ? 3 : 2,
+      onWrongTap: () => this.hurtTape(TAPE.wrongTap),
+    });
+
+    HelpButton.show(this.game);
+    if (result === 'caught') {
+      // undo every uncaught cheat in that turn
+      for (const t of turn) {
+        if (!t.move.cheat) continue;
+        for (let i = 0; i < 8; i++) this.board[i] = Math.max(0, this.board[i] + (t.move.legalBoard[i] - t.move.finalBoard[i]));
+        const type = t.move.cheat.type;
+        this.say(NAMES[opponent], pick(LINES[opponent].caught));
+        this.time.delayedCall(1800, () => this.say('???', CHEAT_TELLS[type] + ' Undone.'));
+        t.move.cheat = null;
+      }
+      this.initialSeedCount = totalSeeds(this.board);
+      this.syncVisualsToBoard();
+      this.setPortrait('angry');
+    } else if (result === 'missed') {
+      this.hurtTape(TAPE.missedWindow);
+      this.say('???', "I missed it... It happened too fast.");
+    } else {
+      this.hurtTape(TAPE.cleanRewind);
+      this.say(NAMES[opponent], pick(LINES[opponent].clean));
+    }
+
+    if (this.health <= 0) {
+      await this.tapeSnap();
+      return;
+    }
+    this.startPlayerTurn();
+  }
+
+  private hurtTape(amount: number): void {
+    this.health = damage(this.health, amount);
+    this.tapeHud.setHealth(this.health);
+    this.cameras.main.shake(140, 0.006);
+  }
+
+  private async tapeSnap(): Promise<void> {
+    this.sceneState = SceneState.GAME_OVER;
+    const veil = this.add.rectangle(960, 540, 1920, 1080, 0x000000, 0).setDepth(300);
+    await new Promise<void>((r) => this.tweens.add({ targets: veil, fillAlpha: 1, duration: 500, onComplete: () => r() }));
+    const t1 = this.add
+      .text(960, 480, 'The tape snapped...', { fontFamily: 'Georgia, serif', fontSize: '64px', color: '#ece2d2' })
+      .setOrigin(0.5)
+      .setDepth(301);
+    const t2 = this.add
+      .text(960, 580, '◀◀ REW', { fontFamily: 'Courier New, monospace', fontSize: '54px', color: '#ffffff', fontStyle: 'bold' })
+      .setOrigin(0.5)
+      .setDepth(301);
+    this.tweens.add({ targets: t2, alpha: 0.2, yoyo: true, repeat: -1, duration: 350 });
+    await this.delay(2200);
+    t1.destroy();
+    this.scene.restart(this.resolvedConfig);
   }
 
   private endOpponentTurn(result: FullMoveResult): void {
@@ -343,6 +490,16 @@ export default class BoardScene extends Phaser.Scene {
       return;
     }
     this.oppExtraTurnCount = 0;
+    this.lastOppTurn = this.turnMoves;
+    this.turnMoves = [];
+    const cheated = this.lastOppTurn.some((t) => t.move.cheat);
+    if (cheated && this.cheatsSeen === 1 && this.resolvedConfig.round === 1) {
+      // tutorial: the first cheat is pointed out
+      this.time.delayedCall(900, () => {
+        this.say('???', "Wait... that doesn't look right. Press ◀◀ REW (or R) to rewind the tape!");
+        this.tweens.add({ targets: this.tapeHud.rewChip, scale: 1.25, yoyo: true, repeat: 5, duration: 300 });
+      });
+    }
     this.startPlayerTurn();
   }
 
@@ -393,8 +550,9 @@ export default class BoardScene extends Phaser.Scene {
   // Animation pipeline: SeedStep[] → sequential Promise chain
   // --------------------------------------------------------------------------
 
-  protected async animateMove(holeIndex: number, isPlayer: boolean): Promise<void> {
-    const steps = getSeedPath(this.board, holeIndex, isPlayer);
+  protected async animateMove(holeIndex: number, isPlayer: boolean, cheated?: CheatedMove): Promise<void> {
+    const steps = cheated?.steps ?? getSeedPath(this.board, holeIndex, isPlayer);
+    const cheat = cheated?.cheat ?? null;
     const live: number[] = [...this.board];
     const dir = isPlayer ? 'up' : 'down';
 
@@ -409,7 +567,8 @@ export default class BoardScene extends Phaser.Scene {
 
     let tembakCleared = false;
     let prev = holeIndex;
-    for (const step of steps) {
+    for (let si = 0; si < steps.length; si++) {
+      const step = steps[si];
       if (step.type === 'keepSowing') {
         this.showHand(step.fromHole, 'fist', dir);
         await this.delay(220);
@@ -432,8 +591,25 @@ export default class BoardScene extends Phaser.Scene {
       }
       if (step.type === 'extraTurn') continue; // marker only; the last 'sow' already landed in the house
       const from = step.type === 'tembak' ? step.fromHole : prev;
+      if (cheat && cheat.stepIndex === si && cheat.type === 'skipHole') {
+        // lamp flickers; the seed never lands in your hole
+        const fl = this.flicker(0.6, 300);
+        await this.animateSeed(step, from, live, dir, true);
+        await fl;
+        prev = step.toHole;
+        continue;
+      }
       await this.animateSeed(step, from, live, dir);
       if (step.type === 'sow') prev = step.toHole;
+      if (cheat && cheat.stepIndex === si && cheat.type === 'extraSeed') {
+        // lamp flickers; an extra seed appears
+        const fl = this.flicker(0.6, 300);
+        await this.delay(150);
+        live[step.toHole]++;
+        this.populateRestingSeeds(this.holes[step.toHole], live[step.toHole]);
+        this.holes[step.toHole].label.setText(String(live[step.toHole]));
+        await fl;
+      }
     }
 
     this.tweens.add({ targets: this.handSprite, y: this.handSprite.y + (isPlayer ? 400 : -400), alpha: 0, duration: 260 });
@@ -465,7 +641,7 @@ export default class BoardScene extends Phaser.Scene {
     await this.delay(120);
   }
 
-  private animateSeed(step: SeedStep, fromHole: number, live: number[], dir: 'up' | 'down'): Promise<void> {
+  private animateSeed(step: SeedStep, fromHole: number, live: number[], dir: 'up' | 'down', keep = false): Promise<void> {
     const from = this.holes[fromHole];
     const to = this.holes[step.toHole];
     const seed = this.pool.acquire(getSeedColour(step.seedIndex)).setDepth(34).setPosition(from.x, from.y);
@@ -486,9 +662,11 @@ export default class BoardScene extends Phaser.Scene {
         onComplete: () => {
           this.handSprite.setTexture(`hand_open_${dir}`).setPosition(to.x, to.y);
           this.pool.release(seed);
-          live[step.toHole]++;
-          this.populateRestingSeeds(to, live[step.toHole]);
-          to.label.setText(String(live[step.toHole]));
+          if (!keep) {
+            live[step.toHole]++;
+            this.populateRestingSeeds(to, live[step.toHole]);
+            to.label.setText(String(live[step.toHole]));
+          }
           this.time.delayedCall(40, resolve);
         },
       });
