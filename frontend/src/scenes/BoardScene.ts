@@ -26,6 +26,7 @@ import {
   seedOffset,
   selectOpponentHole,
 } from './boardScene.helpers';
+import { TAPE_HUD_ASSETS, TapeHud } from '../ui/TapeHud';
 
 export * from './boardScene.helpers';
 
@@ -92,6 +93,7 @@ export default class BoardScene extends Phaser.Scene {
   board!: Board;
   pool!: SeedPool;
   sceneState!: SceneState;
+  tapeHud!: TapeHud;
 
   private initialSeedCount = 0;
   private oppExtraTurnCount = 0;
@@ -130,6 +132,7 @@ export default class BoardScene extends Phaser.Scene {
       this.load.image(`hand_${h}_up`, `game/hand_${h}_up.png`);
       this.load.image(`hand_${h}_down`, `game/hand_${h}_down.png`);
     }
+    for (const [key, path] of TAPE_HUD_ASSETS) this.load.image(key, path);
   }
 
   // --------------------------------------------------------------------------
@@ -216,6 +219,9 @@ export default class BoardScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setDepth(42);
+
+    // Tape health HUD (top-right) with ◀◀ REW chip
+    this.tapeHud = new TapeHud(this, this.resolvedConfig.round);
 
     // Hand
     this.handSprite = this.add.image(0, 0, 'hand_fist_up').setVisible(false).setDepth(35);
