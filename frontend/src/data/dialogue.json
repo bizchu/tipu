@@ -1,15 +1,359 @@
 {
   "prologue": [
-    { "name": "???", "pose": "mahsuri:confused", "text": "...Where am I?" },
-    { "name": "???", "pose": "mahsuri:confused", "text": "What is this place?" },
-    { "name": "???", "pose": "mahsuri:scared", "text": "I can't remember anything... not even my name." },
-    { "name": "Wan Mahora", "pose": "wan_mahora:calm", "text": "Ah... you're finally awake." },
-    { "name": "Wan Mahora", "pose": "wan_mahora:calm", "text": "Don't look so frightened, sayang." },
-    { "name": "Wan Mahora", "pose": "wan_mahora:calm", "text": "Play a game of congkak with me. Win, and I'll help you remember." },
-    { "name": "Wan Mahora", "pose": "wan_mahora:calm", "text": "Go on. You go first." }
+    {
+      "name": "???",
+      "pose": "mahsuri:confused",
+      "text": "...Where am I?"
+    },
+    {
+      "name": "???",
+      "pose": "mahsuri:confused",
+      "text": "What is this place?"
+    },
+    {
+      "name": "???",
+      "pose": "mahsuri:scared",
+      "text": "I can't remember anything... not even my name."
+    },
+    {
+      "name": "Wan Mahora",
+      "pose": "wan_mahora:calm",
+      "text": "Ah... you're finally awake."
+    },
+    {
+      "name": "Wan Mahora",
+      "pose": "wan_mahora:calm",
+      "text": "Don't look so frightened, sayang."
+    },
+    {
+      "name": "Wan Mahora",
+      "pose": "wan_mahora:calm",
+      "text": "Play a game of congkak with me. Win, and I'll help you remember."
+    },
+    {
+      "name": "Wan Mahora",
+      "pose": "wan_mahora:calm",
+      "text": "Go on. You go first."
+    }
   ],
   "chapters": {
-    "1": { "bab": "BAB 1  ·  CHAPTER 1", "title": "Pembohongan", "subtitle": "The Lie", "opponent": "Wan Mahora" },
-    "2": { "bab": "BAB 2  ·  CHAPTER 2", "title": "Kebenaran", "subtitle": "The Truth", "opponent": "The Village Chief" }
-  }
+    "1": {
+      "bab": "BAB 1  ·  CHAPTER 1",
+      "title": "Pembohongan",
+      "subtitle": "The Lie",
+      "opponent": "Wan Mahora"
+    },
+    "2": {
+      "bab": "BAB 2  ·  CHAPTER 2",
+      "title": "Kebenaran",
+      "subtitle": "The Truth",
+      "opponent": "The Village Chief"
+    }
+  },
+  "memory1": [
+    {
+      "card": "wedding",
+      "text": "An unknown couple, getting married..."
+    },
+    {
+      "card": "leaving",
+      "text": "Her husband is leaving... for war."
+    },
+    {
+      "card": "traveller",
+      "text": "A travelling poet stays in the village. She is kind to him."
+    },
+    {
+      "card": "gossip",
+      "text": "Whispers everywhere... they say she betrayed her husband."
+    }
+  ],
+  "memory2": [
+    {
+      "card": "judgement",
+      "text": "Accused of adultery... and the chief wouldn't let her speak."
+    },
+    {
+      "card": "tree",
+      "text": "They tied her to that tree... to be put to death."
+    },
+    {
+      "card": "whiteblood",
+      "text": "White... her blood was white. She was innocent."
+    }
+  ],
+  "reveal": [
+    {
+      "name": "???",
+      "text": "Those tears... are mine."
+    },
+    {
+      "name": "???",
+      "text": "...that was me."
+    },
+    {
+      "name": "Mahsuri",
+      "text": "I am Mahsuri."
+    },
+    {
+      "name": "Mahsuri",
+      "text": "They said I betrayed my husband... with that poet."
+    },
+    {
+      "name": "Mahsuri",
+      "text": "I told them I was innocent. They would not listen."
+    },
+    {
+      "name": "Mahsuri",
+      "text": "If I had sinned, let my blood run red."
+    },
+    {
+      "name": "Mahsuri",
+      "text": "But if I am innocent... let it run white."
+    },
+    {
+      "name": "Mahsuri",
+      "text": "And it ran white."
+    },
+    {
+      "name": "Mahsuri",
+      "text": "For this injustice, Langkawi will know no peace..."
+    },
+    {
+      "name": "Mahsuri",
+      "text": "...for seven generations."
+    }
+  ],
+  "curse": [
+    {
+      "card": "siam",
+      "date": "16 NOV 1821",
+      "lines": [
+        "Not long after, the Siamese came across the sea.",
+        "Elephants. Cannons. Soldiers on our shores."
+      ],
+      "title": "The Siamese invasion",
+      "body": [
+        "Not long after Mahsuri died, a Siamese army crossed into Kedah and on to Langkawi.",
+        "Soldiers, cannons and war elephants came ashore. Villagers fled into the hills."
+      ]
+    },
+    {
+      "card": "rice",
+      "date": "17 NOV 1821",
+      "lines": [
+        "They burned their own rice so the enemy could not take it.",
+        "The fields smouldered for days."
+      ],
+      "title": "Padang Beras Terbakar",
+      "body": [
+        "Rather than let the invaders take their food, the villagers burned their own rice stores.",
+        "The place is still called the Field of Burnt Rice. People say charred grains rise from the soil after heavy rain."
+      ]
+    },
+    {
+      "card": "crops",
+      "date": "MAR 1822",
+      "lines": [
+        "After that, nothing would grow.",
+        "The crops withered. The wells ran dry.",
+        "Langkawi was cursed... for what they did to me."
+      ],
+      "title": "Nothing would grow",
+      "body": [
+        "After the war the land turned against them. Harvests failed, wells dried up and children went hungry.",
+        "The island stayed poor and forgotten, just as she had sworn."
+      ]
+    },
+    {
+      "card": "village",
+      "date": "AUG 1830",
+      "lines": [
+        "One by one, the families left.",
+        "Seven generations would pass before this island knew peace.",
+        "And I have waited here... all this time."
+      ],
+      "title": "Seven generations",
+      "body": [
+        "Family after family left Langkawi. Whole villages stood empty.",
+        "Seven generations would pass before the island prospered again. And all that time, she waited."
+      ]
+    }
+  ],
+  "curseEnd": "...I remember everything now.",
+  "dawn": "The sun is rising... I can finally rest.",
+  "credits": [
+    [
+      "T",
+      "TIPU!"
+    ],
+    [
+      "s",
+      "a Kiroween 2026 entry"
+    ],
+    [
+      "gap",
+      80
+    ],
+    [
+      "h",
+      "CREATED BY"
+    ],
+    [
+      "b",
+      "Noelle"
+    ],
+    [
+      "gap",
+      40
+    ],
+    [
+      "h",
+      "STORY · ART · DESIGN"
+    ],
+    [
+      "b",
+      "Noelle"
+    ],
+    [
+      "gap",
+      40
+    ],
+    [
+      "h",
+      "BASED ON"
+    ],
+    [
+      "b",
+      "The legend of Mahsuri binti Pandak Mayah"
+    ],
+    [
+      "s",
+      "Langkawi, Kedah"
+    ],
+    [
+      "gap",
+      40
+    ],
+    [
+      "h",
+      "BUILT WITH"
+    ],
+    [
+      "b",
+      "Kiro"
+    ],
+    [
+      "b",
+      "Phaser 3 · Three.js · Vite · TypeScript"
+    ],
+    [
+      "gap",
+      40
+    ],
+    [
+      "h",
+      "3D MODELS"
+    ],
+    [
+      "b",
+      "\"Old TV\" by danny_p3d"
+    ],
+    [
+      "b",
+      "\"VHS player\" by Artem P"
+    ],
+    [
+      "s",
+      "both CC BY 4.0, via Sketchfab"
+    ],
+    [
+      "gap",
+      40
+    ],
+    [
+      "h",
+      "FONTS"
+    ],
+    [
+      "b",
+      "Creepster (SIL Open Font License)"
+    ],
+    [
+      "gap",
+      40
+    ],
+    [
+      "h",
+      "IMAGES"
+    ],
+    [
+      "b",
+      "\"L'armée siamoise en marche\", Le Petit Journal, 1893 (public domain)"
+    ],
+    [
+      "gap",
+      40
+    ],
+    [
+      "h",
+      "MUSIC & SOUND"
+    ],
+    [
+      "b",
+      "[to be credited]"
+    ],
+    [
+      "gap",
+      40
+    ],
+    [
+      "h",
+      "SPECIAL THANKS"
+    ],
+    [
+      "b",
+      "[names]"
+    ],
+    [
+      "gap",
+      90
+    ],
+    [
+      "h",
+      "A LITTLE MALAY"
+    ],
+    [
+      "b",
+      "TIPU! means \"Liar!\""
+    ],
+    [
+      "b",
+      "sayang means \"darling\""
+    ],
+    [
+      "b",
+      "congkak is a traditional Malay seed game"
+    ],
+    [
+      "gap",
+      90
+    ],
+    [
+      "b",
+      "For Mahsuri."
+    ],
+    [
+      "s",
+      "Seven generations have passed. Rest now."
+    ],
+    [
+      "gap",
+      160
+    ],
+    [
+      "END",
+      "THE END"
+    ]
+  ]
 }

@@ -40,7 +40,7 @@ const SLEEVE = { x: 120, y: 120 };
 export async function playReplay(
   scene: Phaser.Scene,
   moves: ReplayMove[],
-  opts: { background: 'room' | 'outside'; slow: number; onWrongTap: () => void },
+  opts: { background: 'room' | 'outside'; slow: number; onWrongTap: () => void; hint?: boolean },
 ): Promise<ReplayResult> {
   const D = 200;
   const layer = scene.add.container(0, 0).setDepth(D);
@@ -92,17 +92,43 @@ export async function playReplay(
   layer.add(dark);
 
   rew.setText(`◀◀ REWIND  ×${opts.slow === 3 ? '⅓' : '½'}`);
-  const prompt = scene.add
-    .text(960, 1000, 'Tap when you see something off!', {
+  // Big instruction card first, then a bold banner that stays on screen
+  const card = scene.add.container(960, 540);
+  const cardBg = scene.add.rectangle(0, 0, 1500, 330, 0x140608, 0.94).setStrokeStyle(6, 0xd8262b);
+  const cardTitle = scene.add
+    .text(0, -70, 'WATCH CLOSELY...', { fontFamily: 'Courier New, monospace', fontSize: '64px', color: '#ff4a3a', fontStyle: 'bold' })
+    .setOrigin(0.5);
+  const cardBody = scene.add
+    .text(0, 40, 'TAP the moment you see something suspicious!', {
       fontFamily: 'Georgia, serif',
-      fontSize: '40px',
+      fontSize: '56px',
       color: '#f6e2b4',
-      backgroundColor: '#140c0acc',
-      padding: { x: 24, y: 10 },
+      fontStyle: 'bold',
+      align: 'center',
+      wordWrap: { width: 1400 },
     })
     .setOrigin(0.5);
-  layer.add(prompt);
-  scene.tweens.add({ targets: prompt, alpha: 0.55, yoyo: true, repeat: -1, duration: 700 });
+  card.add([cardBg, cardTitle, cardBody]).setScale(0.6).setAlpha(0);
+  layer.add(card);
+  await new Promise<void>((r) => scene.tweens.add({ targets: card, scale: 1, alpha: 1, duration: 260, ease: 'Back.easeOut', onComplete: () => r() }));
+  await wait(2200);
+  await new Promise<void>((r) => scene.tweens.add({ targets: card, alpha: 0, scale: 0.8, duration: 220, onComplete: () => r() }));
+  card.destroy();
+
+  const banner = scene.add.container(960, 1000);
+  const bannerBg = scene.add.rectangle(0, 0, 1240, 100, 0x140608, 0.92).setStrokeStyle(4, 0xd8262b);
+  const bannerText = scene.add
+    .text(0, 0, '👆  TAP when you see something suspicious!', {
+      fontFamily: 'Georgia, serif',
+      fontSize: '46px',
+      color: '#f6e2b4',
+      fontStyle: 'bold',
+    })
+    .setOrigin(0.5);
+  banner.add([bannerBg, bannerText]);
+  layer.add(banner);
+  const prompt = bannerText;
+  scene.tweens.add({ targets: banner, scale: 1.04, yoyo: true, repeat: -1, duration: 650, ease: 'Sine.easeInOut' });
 
   // ---- tap handling ----
   let windowOpen = false;
@@ -154,6 +180,14 @@ export async function playReplay(
   const openWindow = (x: number, y: number, ms: number) => {
     region = { x, y, r: 150 };
     windowOpen = true;
+    prompt.setText('👆  NOW! Tap it!').setColor('#ff4a3a');
+    scene.time.delayedCall(ms, () => prompt.setText('👆  TAP when you see something suspicious!').setColor('#f6e2b4'));
+    if (opts.hint) {
+      const ring = scene.add.circle(x, y, 120).setStrokeStyle(8, 0xff3a2a).setFillStyle(0xff3a2a, 0.12);
+      layer.add(ring);
+      scene.tweens.add({ targets: ring, scale: 1.25, alpha: 0.3, yoyo: true, repeat: -1, duration: 350 });
+      scene.time.delayedCall(ms, () => ring.destroy());
+    }
     scene.registry.set('replayWindow', { ...region, open: true }); // used by automated play-tests
     scene.time.delayedCall(ms, () => {
       windowOpen = false;

@@ -5,6 +5,11 @@ import ChapterCard from './scenes/ChapterCard';
 import Prologue from './scenes/Prologue';
 import HowTo from './scenes/HowTo';
 import ToBeContinued from './scenes/ToBeContinued';
+import Memory from './scenes/Memory';
+import Reveal from './scenes/Reveal';
+import Curse from './scenes/Curse';
+import Dawn from './scenes/Dawn';
+import Credits from './scenes/Credits';
 import { showTitleScreen } from './title/TitleScreen';
 import { HelpButton } from './ui/HelpButton';
 
@@ -18,7 +23,7 @@ const config: Phaser.Types.Core.GameConfig = {
   height: 1080,
   backgroundColor: '#000000',
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-  scene: [Boot, ChapterCard, Prologue, HowTo, BoardScene, ToBeContinued],
+  scene: [Boot, ChapterCard, Prologue, HowTo, BoardScene, Memory, Reveal, Curse, Dawn, Credits, ToBeContinued],
 };
 
 const game = new Phaser.Game(config);
@@ -96,6 +101,7 @@ startTitle();
 // ---------------------------------------------------------------------------
 // Demo keys: press D then a digit within 1 s to jump around (for testing and the demo video).
 //   D1 round 1 · D2 round 2 · D3 prologue · D4 chapter 1 card · D5 chapter 2 card · D6 how to play
+//   D7 memory 1 · D8 memory 2 · D9 reveal · D0 curse · DC dawn + credits
 // ---------------------------------------------------------------------------
 let dPressedAt = -Infinity;
 window.addEventListener(
@@ -114,6 +120,11 @@ window.addEventListener(
     '4': ['ChapterCard', { chapter: 1, next: 'Prologue' }],
     '5': ['ChapterCard', { chapter: 2, next: 'BoardScene', nextData: { round: 2 } }],
     '6': ['HowTo', { next: 'BoardScene', nextData: { round: 1 } }],
+    '7': ['Memory', { set: 1 }],
+    '8': ['Memory', { set: 2 }],
+    '9': ['Reveal', {}],
+    '0': ['Curse', {}],
+    c: ['Dawn', {}],
   };
   const t = targets[key];
   if (!t) return;

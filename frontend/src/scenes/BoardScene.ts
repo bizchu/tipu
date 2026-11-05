@@ -121,6 +121,8 @@ export default class BoardScene extends Phaser.Scene {
   private rewinds = 3;
   private health: number = TAPE.start;
   private cheatsSeen = 0;
+  private caughtCount = 0;
+  private rewindCallout: Phaser.GameObjects.Container | null = null;
 
   constructor() {
     super({ key: 'BoardScene' });
@@ -173,6 +175,7 @@ export default class BoardScene extends Phaser.Scene {
     this.rewinds = 3;
     this.health = TAPE.start;
     this.cheatsSeen = 0;
+    this.caughtCount = 0;
     HelpButton.show(this.game);
 
     // Background
@@ -414,6 +417,8 @@ export default class BoardScene extends Phaser.Scene {
     this.removeAllGlows();
     this.clearPreview();
     this.tweens.killTweensOf(this.tapeHud.rewChip);
+    this.rewindCallout?.destroy();
+    this.rewindCallout = null;
     this.tapeHud.rewChip.setScale(1);
     this.rewinds--;
     this.tapeHud.setRewinds(this.rewinds);
@@ -425,6 +430,7 @@ export default class BoardScene extends Phaser.Scene {
       background,
       slow: round === 1 ? 3 : 2,
       onWrongTap: () => this.hurtTape(TAPE.wrongTap),
+      hint: this.caughtCount === 0 && round === 1,
     });
 
     HelpButton.show(this.game);
@@ -438,6 +444,7 @@ export default class BoardScene extends Phaser.Scene {
         this.time.delayedCall(1800, () => this.say('???', CHEAT_TELLS[type] + ' Undone.'));
         t.move.cheat = null;
       }
+      this.caughtCount++;
       this.initialSeedCount = totalSeeds(this.board);
       this.syncVisualsToBoard();
       this.setPortrait('angry');
@@ -454,6 +461,24 @@ export default class BoardScene extends Phaser.Scene {
       return;
     }
     this.startPlayerTurn();
+  }
+
+  /** Big, obvious banner + arrow pointing at the REW chip (first cheat only). */
+  private showRewindCallout(): void {
+    const box = this.add.container(1240, 330).setDepth(70);
+    const bg = this.add.rectangle(0, 0, 760, 170, 0x140608, 0.94).setStrokeStyle(5, 0xd8262b);
+    const t1 = this.add
+      .text(0, -32, 'Something looks off...', { fontFamily: 'Georgia, serif', fontSize: '46px', color: '#f6e2b4', fontStyle: 'bold' })
+      .setOrigin(0.5);
+    const t2 = this.add
+      .text(0, 38, 'Press  ◀◀ REW  (or R)', { fontFamily: 'Courier New, monospace', fontSize: '44px', color: '#ff4a3a', fontStyle: 'bold' })
+      .setOrigin(0.5);
+    const arrow = this.add.text(300, -150, '⬈', { fontFamily: 'Arial', fontSize: '110px', color: '#ff4a3a' }).setOrigin(0.5);
+    box.add([bg, t1, t2, arrow]).setScale(0.6).setAlpha(0);
+    this.tweens.add({ targets: box, scale: 1, alpha: 1, duration: 260, ease: 'Back.easeOut' });
+    this.tweens.add({ targets: arrow, x: 320, y: -170, yoyo: true, repeat: -1, duration: 400 });
+    this.tweens.add({ targets: this.tapeHud.rewChip, scale: 1.3, yoyo: true, repeat: -1, duration: 350 });
+    this.rewindCallout = box;
   }
 
   private hurtTape(amount: number): void {
@@ -497,7 +522,7 @@ export default class BoardScene extends Phaser.Scene {
       // tutorial: the first cheat is pointed out
       this.time.delayedCall(900, () => {
         this.say('???', "Wait... that doesn't look right. Press ◀◀ REW (or R) to rewind the tape!");
-        this.tweens.add({ targets: this.tapeHud.rewChip, scale: 1.25, yoyo: true, repeat: 5, duration: 300 });
+        this.showRewindCallout();
       });
     }
     this.startPlayerTurn();
@@ -537,10 +562,8 @@ export default class BoardScene extends Phaser.Scene {
     retry.on('pointerup', () => {
       if (!won) {
         this.scene.restart(this.resolvedConfig);
-      } else if (this.resolvedConfig.round === 1) {
-        this.scene.start('ChapterCard', { chapter: 2, next: 'BoardScene', nextData: { round: 2 } });
       } else {
-        this.scene.start('ToBeContinued');
+        this.scene.start('Memory', { set: this.resolvedConfig.round });
       }
     });
     overlay.add([dim, panel, text, score, retry]);
