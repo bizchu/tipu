@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import dialogue from '../data/dialogue.json';
 import { StoryBox } from '../ui/StoryBox';
+import { VhsFilter } from '../ui/VhsFilter';
+import { Sound } from '../audio/Sound';
 import { addAmbience, preloadAmbience } from '../ui/Ambience';
 import { HelpButton } from '../ui/HelpButton';
 
@@ -21,6 +23,8 @@ export default class Prologue extends Phaser.Scene {
   async create(): Promise<void> {
     HelpButton.hide(); // the story box covers the bottom-left; ? returns in gameplay
     addAmbience(this, 'room');
+    new VhsFilter(this, 0, 85);
+    Sound.mood({ crickets: 0.5, hum: 0.25, heartbeat: 0 });
     const mahsuri = this.add.image(960, 1080, 'mahsuri_confused').setOrigin(0.5, 1).setDepth(5);
     const wan = this.add.image(960, 1000, 'wan_mahora_calm').setOrigin(0.5, 1).setDepth(5).setAlpha(0);
     const board = this.add.image(960, 1050, 'board_angled').setOrigin(0.5, 1).setDisplaySize(1000, 152).setDepth(6).setAlpha(0);

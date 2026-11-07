@@ -11,11 +11,11 @@ All character art, backgrounds, memory photos, UI and story by **Noelle**, unles
 
 ## Images
 - "Les événements de Siam (L'armée siamoise en marche)", Le Petit Journal, 1893. Public domain. Used in assets/backgrounds/memory3_curse/siam_army_card.png
-- TODO: rice-field fire, dead crops and empty village photos for the curse scene must be free-licence (Unsplash/Pexels/Wikimedia) or original. Add each with link + licence here.
+- Curse scene photos (rice fire, dead crops, empty village): currently placeholders made from Noelle's own outside/ground artwork.
 - TODO: photobash sources used in the room/outside backgrounds (door, rug, shutters, fan, dresser, lamp, clock, plates, chair, cushions, tapes, fabrics, jewellery). Add link + licence for each.
 
-## Music and sound
-- TODO
+## Sound
+- All sound is synthesised in the browser with the Web Audio API (no recorded audio).
 
 ## Legend
 The story follows the Langkawi legend of Mahsuri binti Pandak Mayah (https://en.wikipedia.org/wiki/Mahsuri).

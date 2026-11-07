@@ -13,7 +13,8 @@ export function preloadAmbience(scene: Phaser.Scene): void {
   scene.load.image('room_fan', 'game/room_fan.png');
   scene.load.image('room_pendulum', 'game/room_pendulum.png');
   scene.load.spritesheet('room_sky', 'game/room_sky_sheet.png', { frameWidth: 320, frameHeight: 201 });
-  scene.load.spritesheet('outside_sky', 'game/outside_sky_sheet.png', { frameWidth: 1920, frameHeight: 640 });
+  scene.load.image('bg_outside', 'game/outside_bg.jpg');
+  scene.load.spritesheet('outside_sky', 'game/outside_sky_sheet.webp', { frameWidth: 1920, frameHeight: 640 });
 }
 
 export function addAmbience(scene: Phaser.Scene, background: 'room' | 'outside'): void {

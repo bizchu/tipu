@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { HelpButton } from '../ui/HelpButton';
+import { Sound } from '../audio/Sound';
 
 export interface HowToData {
   /** Scene to start when finished (used in the main flow). */
@@ -27,7 +28,7 @@ export default class HowTo extends Phaser.Scene {
   }
 
   preload(): void {
-    for (let i = 1; i <= SLIDES; i++) this.load.image(`howto_${i}`, `ui/howto/slides/howto_slide_${i}.png`);
+    for (let i = 1; i <= SLIDES; i++) this.load.image(`howto_${i}`, `game/howto_${i}.jpg`);
     this.load.image('arrow_next', 'ui/howto/slides/ui_arrow_next.png');
     this.load.image('arrow_back', 'ui/howto/slides/ui_arrow_back.png');
   }
@@ -68,6 +69,7 @@ export default class HowTo extends Phaser.Scene {
 
   private go(d: number): void {
     this.index = Phaser.Math.Clamp(this.index + d, 0, SLIDES - 1);
+    Sound.page();
     this.render();
   }
 

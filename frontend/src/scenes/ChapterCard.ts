@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import dialogue from '../data/dialogue.json';
+import { VhsFilter } from '../ui/VhsFilter';
+import { Sound } from '../audio/Sound';
 
 export interface ChapterCardData {
   chapter: 1 | 2;
@@ -14,7 +16,7 @@ export default class ChapterCard extends Phaser.Scene {
   }
 
   preload(): void {
-    this.load.spritesheet('tape_spin', 'game/tape_spin_sheet.png', { frameWidth: 320, frameHeight: 240 });
+    this.load.spritesheet('tape_spin', 'game/tape_spin_sheet.webp', { frameWidth: 320, frameHeight: 240 });
   }
 
   create(data: ChapterCardData): void {
@@ -56,6 +58,9 @@ export default class ChapterCard extends Phaser.Scene {
       this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start(data.next, data.nextData));
     };
     this.cameras.main.fadeIn(400);
+    new VhsFilter(this, data.chapter === 2 ? 1 : 0);
+    Sound.mood({ crickets: 0, hum: 0.3, heartbeat: 0 });
+    Sound.whirr(0.8);
     this.time.delayedCall(3600, go);
     this.time.delayedCall(800, () => this.input.once('pointerup', go));
   }

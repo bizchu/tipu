@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { Board, OPP_HOUSE } from '../logic/congkak';
 import { CheatedMove, hitTest } from '../logic/cheats';
 import { getSeedColour, seedOffset } from '../scenes/boardScene.helpers';
+import { Sound } from '../audio/Sound';
 
 /**
  * The VHS rewind replay: a slow, top-down replay of the opponent's last turn on
@@ -171,6 +172,7 @@ export async function playReplay(
         },
         onComplete: () => {
           s.destroy();
+          Sound.tick();
           hand.setTexture('hand_open_down');
           r();
         },
@@ -287,6 +289,7 @@ export async function playReplay(
     const stamp = scene.add.image(region.x, region.y, 'tipu_stamp').setDepth(D + 70).setScale(2.6).setAngle(-18).setAlpha(0);
     scene.tweens.add({ targets: stamp, scale: 1, angle: -8, alpha: 1, duration: 220, ease: 'Back.easeOut' });
     await wait(200);
+    Sound.thunk();
     scene.cameras.main.shake(260, 0.012);
     await wait(1300);
     scene.tweens.add({ targets: stamp, alpha: 0, duration: 300, onComplete: () => stamp.destroy() });

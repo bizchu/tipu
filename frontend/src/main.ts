@@ -10,8 +10,10 @@ import Reveal from './scenes/Reveal';
 import Curse from './scenes/Curse';
 import Dawn from './scenes/Dawn';
 import Credits from './scenes/Credits';
+import DeadStare from './scenes/DeadStare';
 import { showTitleScreen } from './title/TitleScreen';
 import { HelpButton } from './ui/HelpButton';
+import { Sound } from './audio/Sound';
 
 /**
  * Entry point. Base resolution 1920×1080, scaled to fit the window (letterboxed).
@@ -23,8 +25,11 @@ const config: Phaser.Types.Core.GameConfig = {
   height: 1080,
   backgroundColor: '#000000',
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-  scene: [Boot, ChapterCard, Prologue, HowTo, BoardScene, Memory, Reveal, Curse, Dawn, Credits, ToBeContinued],
+  scene: [Boot, ChapterCard, Prologue, HowTo, BoardScene, DeadStare, Memory, Reveal, Curse, Dawn, Credits, ToBeContinued],
 };
+
+// Creepster is used by the title TV and the credits
+new FontFace('Creepster', 'url(/fonts/creepster.woff2)').load().then((f) => document.fonts.add(f)).catch(() => undefined);
 
 const game = new Phaser.Game(config);
 (window as unknown as { __tipu: Phaser.Game }).__tipu = game;
@@ -38,7 +43,10 @@ let titleCancelled = false;
 function startTitle(): void {
   HelpButton.hide();
   showTitleScreen({
-    onPlay: () => game.scene.start('ChapterCard', { chapter: 1, next: 'Prologue' }),
+    onPlay: () => {
+      Sound.glitch();
+      game.scene.start('ChapterCard', { chapter: 1, next: 'Prologue' });
+    },
     onHowTo: () => {
       const root = titleRoot();
       if (root) root.style.display = 'none';
@@ -91,6 +99,7 @@ function openSettings(): void {
       /* ignore */
     }
     (e.target as HTMLElement).textContent = `Sound: ${sound ? 'ON' : 'OFF'}`;
+    Sound.setEnabled(sound);
   });
   m.querySelector('#s-close')!.addEventListener('click', () => m.remove());
   (m.querySelector('#s-close') as HTMLElement).focus();
@@ -125,6 +134,7 @@ window.addEventListener(
     '9': ['Reveal', {}],
     '0': ['Curse', {}],
     c: ['Dawn', {}],
+    s: ['DeadStare', {}],
   };
   const t = targets[key];
   if (!t) return;

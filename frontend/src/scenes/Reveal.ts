@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import dialogue from '../data/dialogue.json';
 import { StoryBox } from '../ui/StoryBox';
+import { VhsFilter } from '../ui/VhsFilter';
+import { Sound } from '../audio/Sound';
 import { HelpButton } from '../ui/HelpButton';
 
 export const TREE_FOCUS = { x: 0.49, y: 0.5 };
@@ -18,7 +20,7 @@ export function addTreeAndMahsuri(scene: Phaser.Scene): { tree: Phaser.GameObjec
 
 export function preloadTree(scene: Phaser.Scene): void {
   scene.load.spritesheet('reveal_tree', 'game/reveal_tree.jpg', { frameWidth: 682, frameHeight: 384 });
-  scene.load.image('mahsuri_tied', 'game/mahsuri_tied.png');
+  scene.load.image('mahsuri_tied', 'game/mahsuri_tied.webp');
 }
 
 /** Zoom into the tree photo → glitch → white flash → "I am Mahsuri." */
@@ -36,6 +38,9 @@ export default class Reveal extends Phaser.Scene {
     HelpButton.hide();
     const wait = (ms: number) => new Promise<void>((r) => this.time.delayedCall(ms, r));
     this.cameras.main.fadeIn(400);
+    new VhsFilter(this, 1);
+    Sound.mood({ crickets: 0, hum: 0.2, heartbeat: 0.5 });
+    Sound.setHeartbeatRate(1.6);
     if (!this.anims.exists('reveal_tree_loop')) {
       this.anims.create({ key: 'reveal_tree_loop', frames: this.anims.generateFrameNumbers('reveal_tree'), frameRate: 6, repeat: -1 });
     }
@@ -65,6 +70,8 @@ export default class Reveal extends Phaser.Scene {
     glitch.clear();
 
     // white flash
+    Sound.glitch();
+    Sound.mood({ heartbeat: 0, hum: 0.12 });
     const flash = this.add.rectangle(960, 540, 1920, 1080, 0xffffff, 1).setDepth(60);
     photo.destroy();
     const { mahsuri } = addTreeAndMahsuri(this);

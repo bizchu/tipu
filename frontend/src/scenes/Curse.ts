@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import dialogue from '../data/dialogue.json';
 import { StoryBox } from '../ui/StoryBox';
+import { VhsFilter } from '../ui/VhsFilter';
+import { Sound } from '../audio/Sound';
 import { addTreeAndMahsuri, preloadTree } from './Reveal';
 
 // top-left → bottom-right, but kept clear of Mahsuri's face in the middle
@@ -21,12 +23,14 @@ export default class Curse extends Phaser.Scene {
   preload(): void {
     StoryBox.preload(this);
     preloadTree(this);
-    for (const c of dialogue.curse) this.load.image(`curse_${c.card}`, `game/curse_${c.card}.png`);
+    for (const c of dialogue.curse) this.load.image(`curse_${c.card}`, `game/curse_${c.card}.webp`);
   }
 
   async create(): Promise<void> {
     this.cameras.main.fadeIn(400);
     addTreeAndMahsuri(this);
+    new VhsFilter(this, 1);
+    Sound.mood({ crickets: 0, hum: 0.15, heartbeat: 0 });
     const dim = this.add.rectangle(960, 540, 1920, 1080, 0x000000, 0).setDepth(8);
     this.tweens.add({ targets: dim, fillAlpha: 0.55, duration: 600 });
     const box = new StoryBox(this);
@@ -69,6 +73,7 @@ export default class Curse extends Phaser.Scene {
         seen.add(i);
         const tick = this.add.text(img.x - 220, img.y - 150, '✓', { fontFamily: 'Arial', fontSize: '48px', color: '#ffffff', backgroundColor: '#d8262b', padding: { x: 10, y: 2 } }).setDepth(30);
         tick.setOrigin(0.5);
+        Sound.page();
         this.openZoom(i, () => {
           hint.setText(status(seen.size));
           if (seen.size === 4 && !this.children.getByName('continue')) this.showContinue();

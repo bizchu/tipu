@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import dialogue from '../data/dialogue.json';
 import { StoryBox } from '../ui/StoryBox';
+import { VhsFilter } from '../ui/VhsFilter';
+import { Sound } from '../audio/Sound';
 import { HelpButton } from '../ui/HelpButton';
 
 export interface MemoryData {
@@ -30,7 +32,7 @@ export default class Memory extends Phaser.Scene {
     this.load.image('mem1_bg', 'game/mem1_bg.jpg');
     this.load.image('mem2_bg', 'game/mem2_bg.jpg');
     for (const n of ['wedding', 'leaving', 'traveller', 'gossip', 'judgement', 'tree', 'whiteblood']) {
-      this.load.spritesheet(`mem_${n}`, `game/mem_${n}.png`, { frameWidth: CARD_W, frameHeight: CARD_H });
+      this.load.spritesheet(`mem_${n}`, `game/mem_${n}.webp`, { frameWidth: CARD_W, frameHeight: CARD_H });
     }
   }
 
@@ -43,6 +45,8 @@ export default class Memory extends Phaser.Scene {
     lines.fillStyle(0x000000, 0.15);
     for (let y = 0; y < 1080; y += 4) lines.fillRect(0, y, 1920, 2);
     this.cameras.main.fadeIn(600);
+    new VhsFilter(this, 0);
+    Sound.mood({ crickets: 0.15, hum: 0.2, heartbeat: 0 });
 
     const cards = items.map((it) => {
       const key = `mem_${it.card}`;
@@ -65,6 +69,7 @@ export default class Memory extends Phaser.Scene {
     for (let i = 0; i < items.length; i++) {
       await box.say('???', items[i].text);
       if (i === items.length - 1) break;
+      Sound.page();
       const top = cards[order[0]];
       await new Promise<void>((r) => this.tweens.add({ targets: top, x: 2300, angle: 16, duration: 380, ease: 'Quad.easeIn', onComplete: () => r() }));
       order = [...order.slice(1), order[0]];

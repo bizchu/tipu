@@ -297,23 +297,19 @@
     ],
     [
       "h",
-      "MUSIC & SOUND"
+      "SOUND"
     ],
     [
       "b",
-      "[to be credited]"
+      "Synthesised live in the browser"
     ],
     [
       "gap",
       40
     ],
     [
-      "h",
-      "SPECIAL THANKS"
-    ],
-    [
-      "b",
-      "[names]"
+      "gap",
+      40
     ],
     [
       "gap",
@@ -355,5 +351,23 @@
       "END",
       "THE END"
     ]
+  ],
+  "deadStare": [
+    {
+      "name": "Village Chief",
+      "text": "..."
+    },
+    {
+      "name": "Village Chief",
+      "text": "You should not have come back."
+    },
+    {
+      "name": "Village Chief",
+      "text": "The court has already judged you."
+    },
+    {
+      "name": "???",
+      "text": "...Judged me? For what?"
+    }
   ]
 }

@@ -31,6 +31,8 @@ import { addAmbience, preloadAmbience } from '../ui/Ambience';
 import { HelpButton } from '../ui/HelpButton';
 import { CHEAT_TELLS, CheatPlan, CheatedMove, TAPE, damage, planCheats, playOpponentMove } from '../logic/cheats';
 import { REPLAY_ASSETS, ReplayMove, playReplay } from '../ui/Replay';
+import { Sound } from '../audio/Sound';
+import { VhsFilter } from '../ui/VhsFilter';
 
 export * from './boardScene.helpers';
 
@@ -133,8 +135,6 @@ export default class BoardScene extends Phaser.Scene {
   // --------------------------------------------------------------------------
 
   preload(): void {
-    this.load.image('bg_room', 'backgrounds/room/room_preview.png');
-    this.load.image('bg_outside', 'backgrounds/outside/outside_preview.png');
 
     for (const pose of ['calm', 'annoyed', 'angry']) {
       this.load.image(`wan_mahora_${pose}`, `game/wan_mahora_${pose}.png`);
@@ -251,6 +251,12 @@ export default class BoardScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setDepth(42);
+
+    // VHS look + sound mood (heavier and tenser in round 2)
+    const round2 = this.resolvedConfig.round === 2;
+    new VhsFilter(this, round2 ? 1 : 0);
+    Sound.mood(round2 ? { crickets: 0.3, hum: 0.35, heartbeat: 0.3 } : { crickets: 0.5, hum: 0.25, heartbeat: 0 });
+    Sound.setHeartbeatRate(1);
 
     // Tape health HUD (top-right) with ◀◀ REW chip
     this.tapeHud = new TapeHud(this, this.resolvedConfig.round);
@@ -383,6 +389,7 @@ export default class BoardScene extends Phaser.Scene {
 
   /** Lamp flicker: a quick dim of the whole scene (covers cheats in live play). */
   private flicker(alpha: number, ms: number): Promise<void> {
+    Sound.flicker();
     const r = this.add.rectangle(960, 540, 1920, 1080, 0x000000, 0).setDepth(55);
     return new Promise((resolve) =>
       this.tweens.add({
@@ -426,6 +433,7 @@ export default class BoardScene extends Phaser.Scene {
     this.lastOppTurn = [];
 
     HelpButton.hide();
+    Sound.whirr(1.1);
     const result = await playReplay(this, turn, {
       background,
       slow: round === 1 ? 3 : 2,
@@ -465,18 +473,27 @@ export default class BoardScene extends Phaser.Scene {
 
   /** Big, obvious banner + arrow pointing at the REW chip (first cheat only). */
   private showRewindCallout(): void {
-    const box = this.add.container(1240, 330).setDepth(70);
-    const bg = this.add.rectangle(0, 0, 760, 170, 0x140608, 0.94).setStrokeStyle(5, 0xd8262b);
+    const box = this.add.container(1180, 360).setDepth(70);
+    const bg = this.add.rectangle(0, 0, 900, 280, 0x140608, 0.95).setStrokeStyle(6, 0xd8262b);
     const t1 = this.add
-      .text(0, -32, 'Something looks off...', { fontFamily: 'Georgia, serif', fontSize: '46px', color: '#f6e2b4', fontStyle: 'bold' })
+      .text(0, -88, 'Wait... what was that?', { fontFamily: 'Georgia, serif', fontSize: '52px', color: '#f6e2b4', fontStyle: 'bold' })
       .setOrigin(0.5);
     const t2 = this.add
-      .text(0, 38, 'Press  ◀◀ REW  (or R)', { fontFamily: 'Courier New, monospace', fontSize: '44px', color: '#ff4a3a', fontStyle: 'bold' })
+      .text(0, -18, 'The lights went out... something suspicious happened.', {
+        fontFamily: 'Georgia, serif',
+        fontSize: '32px',
+        color: '#e8dccb',
+        align: 'center',
+        wordWrap: { width: 820 },
+      })
       .setOrigin(0.5);
-    const arrow = this.add.text(300, -150, '⬈', { fontFamily: 'Arial', fontSize: '110px', color: '#ff4a3a' }).setOrigin(0.5);
-    box.add([bg, t1, t2, arrow]).setScale(0.6).setAlpha(0);
+    const t3 = this.add
+      .text(0, 70, 'Press ◀◀ REW (or R) to rewind and find out!', { fontFamily: 'Courier New, monospace', fontSize: '30px', color: '#ff4a3a', fontStyle: 'bold' })
+      .setOrigin(0.5);
+    const arrow = this.add.text(380, -200, '⬈', { fontFamily: 'Arial', fontSize: '110px', color: '#ff4a3a' }).setOrigin(0.5);
+    box.add([bg, t1, t2, t3, arrow]).setScale(0.6).setAlpha(0);
     this.tweens.add({ targets: box, scale: 1, alpha: 1, duration: 260, ease: 'Back.easeOut' });
-    this.tweens.add({ targets: arrow, x: 320, y: -170, yoyo: true, repeat: -1, duration: 400 });
+    this.tweens.add({ targets: arrow, x: 400, y: -220, yoyo: true, repeat: -1, duration: 400 });
     this.tweens.add({ targets: this.tapeHud.rewChip, scale: 1.3, yoyo: true, repeat: -1, duration: 350 });
     this.rewindCallout = box;
   }
@@ -484,11 +501,16 @@ export default class BoardScene extends Phaser.Scene {
   private hurtTape(amount: number): void {
     this.health = damage(this.health, amount);
     this.tapeHud.setHealth(this.health);
+    Sound.hurt();
+    Sound.mood({ heartbeat: 0.25 + (1 - this.health) * 0.5 });
+    Sound.setHeartbeatRate(1 + (1 - this.health) * 1.2);
     this.cameras.main.shake(140, 0.006);
   }
 
   private async tapeSnap(): Promise<void> {
     this.sceneState = SceneState.GAME_OVER;
+    Sound.glitch();
+    Sound.whirr(2);
     const veil = this.add.rectangle(960, 540, 1920, 1080, 0x000000, 0).setDepth(300);
     await new Promise<void>((r) => this.tweens.add({ targets: veil, fillAlpha: 1, duration: 500, onComplete: () => r() }));
     const t1 = this.add
@@ -518,11 +540,16 @@ export default class BoardScene extends Phaser.Scene {
     this.lastOppTurn = this.turnMoves;
     this.turnMoves = [];
     const cheated = this.lastOppTurn.some((t) => t.move.cheat);
-    if (cheated && this.cheatsSeen === 1 && this.resolvedConfig.round === 1) {
-      // tutorial: the first cheat is pointed out
-      this.time.delayedCall(900, () => {
-        this.say('???', "Wait... that doesn't look right. Press ◀◀ REW (or R) to rewind the tape!");
+    if (cheated && this.cheatsSeen === 1) {
+      // first cheat of the round: spell it out
+      this.time.delayedCall(700, () => {
+        this.say('???', 'Wait... what was that? Why did the lights go out?');
         this.showRewindCallout();
+      });
+    } else if (cheated) {
+      this.time.delayedCall(700, () => {
+        this.say('???', 'The lights flickered again... did something change? ◀◀ REW to check.');
+        this.tweens.add({ targets: this.tapeHud.rewChip, scale: 1.3, yoyo: true, repeat: 7, duration: 300 });
       });
     }
     this.startPlayerTurn();
@@ -563,7 +590,8 @@ export default class BoardScene extends Phaser.Scene {
       if (!won) {
         this.scene.restart(this.resolvedConfig);
       } else {
-        this.scene.start('Memory', { set: this.resolvedConfig.round });
+        if (this.resolvedConfig.round === 2) this.scene.start('DeadStare');
+        else this.scene.start('Memory', { set: 1 });
       }
     });
     overlay.add([dim, panel, text, score, retry]);
@@ -685,6 +713,7 @@ export default class BoardScene extends Phaser.Scene {
         onComplete: () => {
           this.handSprite.setTexture(`hand_open_${dir}`).setPosition(to.x, to.y);
           this.pool.release(seed);
+          Sound.tick();
           if (!keep) {
             live[step.toHole]++;
             this.populateRestingSeeds(to, live[step.toHole]);
