@@ -41,7 +41,7 @@ const SLEEVE = { x: 120, y: 120 };
 export async function playReplay(
   scene: Phaser.Scene,
   moves: ReplayMove[],
-  opts: { background: 'room' | 'outside'; slow: number; onWrongTap: () => void; hint?: boolean },
+  opts: { background: 'room' | 'outside'; slow: number; onWrongTap: () => void; hint?: boolean | (() => boolean) },
 ): Promise<ReplayResult> {
   const D = 200;
   const layer = scene.add.container(0, 0).setDepth(D);
@@ -119,7 +119,7 @@ export async function playReplay(
   const banner = scene.add.container(960, 1000);
   const bannerBg = scene.add.rectangle(0, 0, 1240, 100, 0x140608, 0.92).setStrokeStyle(4, 0xd8262b);
   const bannerText = scene.add
-    .text(0, 0, '👆  TAP when you see something suspicious!', {
+    .text(0, 0, 'TAP when you see something suspicious!', {
       fontFamily: 'Georgia, serif',
       fontSize: '46px',
       color: '#f6e2b4',
@@ -182,9 +182,10 @@ export async function playReplay(
   const openWindow = (x: number, y: number, ms: number) => {
     region = { x, y, r: 150 };
     windowOpen = true;
-    prompt.setText('👆  NOW! Tap it!').setColor('#ff4a3a');
-    scene.time.delayedCall(ms, () => prompt.setText('👆  TAP when you see something suspicious!').setColor('#f6e2b4'));
-    if (opts.hint) {
+    prompt.setText('NOW! Tap it!').setColor('#ff4a3a');
+    scene.time.delayedCall(ms, () => prompt.setText('TAP when you see something suspicious!').setColor('#f6e2b4'));
+    const showHint = typeof opts.hint === 'function' ? opts.hint() : opts.hint;
+    if (showHint) {
       const ring = scene.add.circle(x, y, 120).setStrokeStyle(8, 0xff3a2a).setFillStyle(0xff3a2a, 0.12);
       layer.add(ring);
       scene.tweens.add({ targets: ring, scale: 1.25, alpha: 0.3, yoyo: true, repeat: -1, duration: 350 });

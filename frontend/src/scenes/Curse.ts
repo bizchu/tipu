@@ -87,12 +87,31 @@ export default class Curse extends Phaser.Scene {
     const z = this.add.container(0, 0).setDepth(100).setName('zoom');
     const bg = this.add.rectangle(960, 540, 1920, 1080, 0x050405, 0.85).setInteractive();
     const img = this.add.image(620, 520, `curse_${c.card}`).setScale(0.3).setAngle(-6);
-    const date = this.add.text(1180, 300, c.date, { fontFamily: 'Courier New, monospace', fontSize: '40px', color: '#d8262b', fontStyle: 'bold' });
-    const title = this.add.text(1180, 360, c.title, { fontFamily: 'Georgia, serif', fontSize: '58px', color: '#f6e2b4', fontStyle: 'bold', wordWrap: { width: 640 } });
-    const body = this.add.text(1180, 470, c.body.join('\n\n'), { fontFamily: 'Georgia, serif', fontSize: '32px', color: '#ddd1bf', wordWrap: { width: 640 }, lineSpacing: 8 });
+    // text column: each block placed under the previous one so nothing overlaps
+    const X = 1150;
+    const W = 680;
+    const date = this.add.text(X, 0, c.date, { fontFamily: 'Courier New, monospace', fontSize: '38px', color: '#d8262b', fontStyle: 'bold' });
+    const title = this.add.text(X, 0, c.title, {
+      fontFamily: 'Georgia, serif',
+      fontSize: '54px',
+      color: '#f6e2b4',
+      fontStyle: 'bold',
+      wordWrap: { width: W },
+      lineSpacing: 6,
+    });
+    const body = this.add.text(X, 0, c.body.join('\n\n'), { fontFamily: 'Georgia, serif', fontSize: '31px', color: '#ddd1bf', wordWrap: { width: W }, lineSpacing: 8 });
     const back = this.add
-      .text(1180, 860, 'BACK ◀', { fontFamily: 'Courier New, monospace', fontSize: '36px', color: '#d9a54e', backgroundColor: '#140c0a', padding: { x: 18, y: 8 } })
+      .text(X, 0, 'BACK ◀', { fontFamily: 'Courier New, monospace', fontSize: '36px', color: '#d9a54e', backgroundColor: '#140c0a', padding: { x: 18, y: 8 } })
       .setInteractive({ useHandCursor: true });
+    const total = date.height + 18 + title.height + 30 + body.height + 50 + back.height;
+    let y = Math.max(60, 520 - total / 2);
+    date.setY(y);
+    y += date.height + 18;
+    title.setY(y);
+    y += title.height + 30;
+    body.setY(y);
+    y += body.height + 50;
+    back.setY(y);
     z.add([bg, img, date, title, body, back]);
     z.setAlpha(0);
     this.tweens.add({ targets: z, alpha: 1, duration: 200 });

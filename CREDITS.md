@@ -1,6 +1,6 @@
 # Credits
 
-All character art, backgrounds, memory photos, UI and story by **Noelle**, unless listed below.
+All character art, backgrounds, memory photos, UI and story by **Noelle Loh Mei Hui**, unless listed below.
 
 ## 3D models
 - "Old TV" by danny_p3d: https://sketchfab.com/3d-models/old-tv-3f7bfa2b8d134c4ca2acd395e307f9e6 (CC BY 4.0). File: assets/3d/old_tv.glb

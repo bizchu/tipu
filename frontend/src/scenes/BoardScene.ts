@@ -124,6 +124,8 @@ export default class BoardScene extends Phaser.Scene {
   private health: number = TAPE.start;
   private cheatsSeen = 0;
   private caughtCount = 0;
+  /** consecutive failed attempts (wrong taps or missed cheats); 3 → show where to tap */
+  private failStreak = 0;
   private rewindCallout: Phaser.GameObjects.Container | null = null;
 
   constructor() {
@@ -176,6 +178,7 @@ export default class BoardScene extends Phaser.Scene {
     this.health = TAPE.start;
     this.cheatsSeen = 0;
     this.caughtCount = 0;
+    this.failStreak = 0;
     HelpButton.show(this.game);
 
     // Background
@@ -437,8 +440,11 @@ export default class BoardScene extends Phaser.Scene {
     const result = await playReplay(this, turn, {
       background,
       slow: round === 1 ? 3 : 2,
-      onWrongTap: () => this.hurtTape(TAPE.wrongTap),
-      hint: this.caughtCount === 0 && round === 1,
+      onWrongTap: () => {
+        this.failStreak++;
+        this.hurtTape(TAPE.wrongTap);
+      },
+      hint: () => (this.caughtCount === 0 && round === 1) || this.failStreak >= 3,
     });
 
     HelpButton.show(this.game);
@@ -453,12 +459,20 @@ export default class BoardScene extends Phaser.Scene {
         t.move.cheat = null;
       }
       this.caughtCount++;
+      this.failStreak = 0;
       this.initialSeedCount = totalSeeds(this.board);
       this.syncVisualsToBoard();
       this.setPortrait('angry');
     } else if (result === 'missed') {
+      this.failStreak++;
       this.hurtTape(TAPE.missedWindow);
-      this.say('???', "I missed it... It happened too fast.");
+      if (this.rewinds > 0) {
+        // let them try the same turn again
+        this.lastOppTurn = turn;
+        this.say('???', this.failStreak >= 3 ? 'I missed it again... Rewind once more. This time I\'ll watch the right spot.' : 'I missed it... Rewind and try again?');
+      } else {
+        this.say('???', 'I missed it... It happened too fast.');
+      }
     } else {
       this.hurtTape(TAPE.cleanRewind);
       this.say(NAMES[opponent], pick(LINES[opponent].clean));

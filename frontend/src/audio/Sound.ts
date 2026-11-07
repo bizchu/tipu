@@ -203,6 +203,37 @@ class SoundEngine {
     [523, 659, 784].forEach((f, i) => window.setTimeout(() => this.blip(f, 0.5, 0.12, 'sine'), i * 120));
   }
 
+  /** A synthesised "kuk-kuk-kuk-kuuuk" rooster crow (rising then falling sawtooth). */
+  crow(): void {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const t0 = ctx.currentTime;
+    const notes: [number, number, number][] = [
+      [0, 0.12, 620],
+      [0.16, 0.12, 700],
+      [0.32, 0.12, 760],
+      [0.5, 0.9, 900],
+    ];
+    notes.forEach(([d, dur, f]) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      const bp = ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = 1400;
+      bp.Q.value = 1.5;
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(f, t0 + d);
+      o.frequency.linearRampToValueAtTime(f * 1.15, t0 + d + dur * 0.4);
+      o.frequency.linearRampToValueAtTime(f * 0.7, t0 + d + dur);
+      g.gain.setValueAtTime(0, t0 + d);
+      g.gain.linearRampToValueAtTime(0.18, t0 + d + 0.02);
+      g.gain.linearRampToValueAtTime(0, t0 + d + dur);
+      o.connect(bp).connect(g).connect(this.master!);
+      o.start(t0 + d);
+      o.stop(t0 + d + dur + 0.05);
+    });
+  }
+
   // ---------------------------------------------------------------- helpers
 
   private blip(freq: number, dur: number, vol: number, type: OscillatorType): void {
