@@ -1,17 +1,31 @@
 /**
- * All game sound is synthesised with the Web Audio API — no audio files, so
- * nothing to license or download. Starts only after the first click/key
- * (browser rule) and respects the Settings sound toggle.
+ * Game sound: Pixabay recordings for the night ambience, horror atmosphere,
+ * title music and ending music; everything else (clicks, seeds, rewind,
+ * stamp, heartbeat…) is synthesised with the Web Audio API. Starts only after
+ * the first click/key (browser rule) and respects the Settings sound toggle.
  *
  * Ambience layers: crickets (night), low room hum, heartbeat (tension).
  * One-shots: seed tick, tape whirr (rewind), stamp thunk (TIPU!), glitch,
  * tape damage, flicker buzz, page turn.
  */
-type Layer = 'crickets' | 'hum' | 'heartbeat';
+type Layer = 'crickets' | 'hum' | 'heartbeat' | 'tension';
+type Sample = 'night' | 'tension' | 'title' | 'ending';
+/** Music and ambience recordings (all from Pixabay, see CREDITS.md). Loops were pre-crossfaded so they repeat smoothly. */
+const SAMPLE_FILES: Record<Sample, string> = {
+  night: 'audio/night.mp3',
+  tension: 'audio/tension.mp3',
+  title: 'audio/title.mp3',
+  ending: 'audio/ending.mp3',
+};
+/** layers that are driven by a recording, restarted once their file finishes loading */
+const LAYER_SAMPLE: Partial<Record<Layer, Sample>> = { crickets: 'night', tension: 'tension' };
 
 class SoundEngine {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
+  /** separate volume buses: background ambience vs sound effects */
+  private amb: GainNode | null = null;
+  private sfx: GainNode | null = null;
   private layers = new Map<Layer, { gain: GainNode; stop: () => void }>();
   private heartbeatTimer: number | null = null;
   private heartbeatRate = 1;
@@ -36,6 +50,167 @@ class SoundEngine {
     this.master = this.ctx.createGain();
     this.master.gain.value = this.enabled ? 0.8 : 0;
     this.master.connect(this.ctx.destination);
+    this.amb = this.ctx.createGain();
+    this.amb.gain.value = this.volume('ambience');
+    this.amb.connect(this.master);
+    this.sfx = this.ctx.createGain();
+    this.sfx.gain.value = this.volume('sfx');
+    this.sfx.connect(this.master);
+    this.loadSamples();
+  }
+
+  // ---------------------------------------------------------------- recorded samples
+  // Optional audio files in assets/audio/. If a file is missing the synthesised
+  // version is used instead, so the game always has sound.
+  private samples = new Map<Sample, AudioBuffer>();
+
+  private loadSamples(): void {
+    const ctx = this.ctx!;
+    (Object.keys(SAMPLE_FILES) as Sample[]).forEach((k) => {
+      fetch(SAMPLE_FILES[k])
+        .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error('missing'))))
+        .then((b) => ctx.decodeAudioData(b))
+        .then((buf) => {
+          this.samples.set(k, buf);
+          // swap in the recording for any layer that is already playing
+          (Object.keys(LAYER_SAMPLE) as Layer[]).forEach((l) => {
+            if (LAYER_SAMPLE[l] === k && this.layers.has(l)) this.restartLayer(l);
+          });
+          if (this.wantedMusic?.k === k) this.music(k, this.wantedMusic.opts);
+        })
+        .catch(() => undefined);
+    });
+  }
+
+  private restartLayer(l: Layer): void {
+    const old = this.layers.get(l);
+    if (!old) return;
+    const level = old.gain.gain.value;
+    old.stop();
+    old.gain.disconnect();
+    this.layers.delete(l);
+    const fresh = this.startLayer(l);
+    fresh.gain.gain.setTargetAtTime(level, this.ctx!.currentTime, 0.6);
+  }
+
+  /** UI button click */
+  click(): void {
+    this.blip(900, 0.05, 0.12, 'square');
+  }
+
+  /** opponent loses their temper: low growl, the tension music swells and a few heartbeats */
+  angry(): void {
+    this.blip(70, 0.6, 0.3, 'sawtooth');
+    this.blip(52, 0.8, 0.25, 'sawtooth');
+    this.noiseBurst(0.4, 0.25, 600);
+    this.heartbeatBurst(7);
+  }
+
+  private loopSource(buf: AudioBuffer): AudioBufferSourceNode {
+    const src = this.ctx!.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    // skip the few ms of MP3 encoder padding at each end so the loop has no gap
+    src.loopStart = Math.min(0.03, buf.duration / 4);
+    src.loopEnd = Math.max(src.loopStart + 0.1, buf.duration - 0.03);
+    return src;
+  }
+
+  // ---------------------------------------------------------------- music (title + ending)
+  private musicStop: ((fade: number) => void) | null = null;
+  private wantedMusic: { k: Sample; opts: { vol: number; fade: number; loop: boolean } } | null = null;
+
+  /** Fades a music track in (on the background bus). If audio isn't ready yet it starts as soon as it is. */
+  music(k: Sample, opts: { vol: number; fade: number; loop: boolean }): void {
+    this.wantedMusic = { k, opts };
+    const buf = this.samples.get(k);
+    if (!buf || !this.ctx || !this.amb) return;
+    this.wantedMusic = null;
+    this.musicStop?.(1.5);
+    const ctx = this.ctx;
+    const src = opts.loop ? this.loopSource(buf) : ctx.createBufferSource();
+    if (!opts.loop) src.buffer = buf;
+    const g = ctx.createGain();
+    const t = ctx.currentTime;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(opts.vol, t + opts.fade);
+    if (!opts.loop) {
+      // fade out before the track ends on its own
+      g.gain.setValueAtTime(opts.vol, t + Math.max(opts.fade, buf.duration - 5));
+      g.gain.linearRampToValueAtTime(0, t + buf.duration);
+    }
+    src.connect(g).connect(this.amb);
+    src.start(t);
+    const stop = (fade: number) => {
+      const now = ctx.currentTime;
+      g.gain.cancelScheduledValues(now);
+      g.gain.setValueAtTime(g.gain.value, now);
+      g.gain.linearRampToValueAtTime(0, now + fade);
+      window.setTimeout(() => {
+        try {
+          src.stop();
+        } catch {
+          /* already stopped */
+        }
+      }, fade * 1000 + 100);
+      if (this.musicStop === stop) this.musicStop = null;
+    };
+    this.musicStop = stop;
+  }
+
+  /** Fade the current music out over `fade` seconds. */
+  stopMusic(fade = 2): void {
+    this.wantedMusic = null;
+    this.musicStop?.(fade);
+  }
+
+  // ---------------------------------------------------------------- intensity
+  private heartbeatBase = 0;
+
+  /**
+   * 0 = calm … 1 = terrifying. Slowly swells the horror-atmosphere music that
+   * sits under the night ambience (takes a few seconds to rise or fall).
+   */
+  setIntensity(x: number): void {
+    if (!this.ctx) return;
+    const v = Math.max(0, Math.min(1, x)) * 0.75;
+    let layer = this.layers.get('tension');
+    if (!layer && v > 0) layer = this.startLayer('tension');
+    layer?.gain.gain.setTargetAtTime(v, this.ctx.currentTime, 2.5);
+  }
+
+  /** a few seconds of louder, faster heartbeat, then back to normal */
+  heartbeatBurst(seconds: number): void {
+    if (!this.ctx) return;
+    let layer = this.layers.get('heartbeat');
+    if (!layer) layer = this.startLayer('heartbeat');
+    const g = layer.gain.gain;
+    const now = this.ctx.currentTime;
+    const prevRate = this.heartbeatRate;
+    this.heartbeatRate = Math.max(prevRate, 1.5);
+    g.setTargetAtTime(0.45, now, 0.4);
+    g.setTargetAtTime(this.heartbeatBase, now + seconds, 1.5);
+    window.setTimeout(() => (this.heartbeatRate = prevRate), seconds * 1000);
+  }
+
+  /** saved volume 0–1 for 'ambience' or 'sfx' (default 0.8) */
+  volume(bus: 'ambience' | 'sfx'): number {
+    try {
+      const v = localStorage.getItem(`tipu.vol.${bus}`);
+      return v === null ? 0.8 : Math.max(0, Math.min(1, Number(v)));
+    } catch {
+      return 0.8;
+    }
+  }
+
+  setVolume(bus: 'ambience' | 'sfx', v: number): void {
+    try {
+      localStorage.setItem(`tipu.vol.${bus}`, String(v));
+    } catch {
+      /* storage unavailable */
+    }
+    const node = bus === 'ambience' ? this.amb : this.sfx;
+    if (node && this.ctx) node.gain.setTargetAtTime(v, this.ctx.currentTime, 0.05);
   }
 
   setEnabled(on: boolean): void {
@@ -51,7 +226,9 @@ class SoundEngine {
       const v = levels[l] ?? 0;
       let layer = this.layers.get(l);
       if (!layer && v > 0) layer = this.startLayer(l);
-      if (layer) layer.gain.gain.setTargetAtTime(v, this.ctx!.currentTime, 0.6);
+      if (l === 'heartbeat') this.heartbeatBase = v;
+      // tension music swells slowly; everything else crossfades in ~2 s
+      if (layer) layer.gain.gain.setTargetAtTime(v, this.ctx!.currentTime, l === 'tension' ? 2.5 : 0.6);
     });
   }
 
@@ -63,10 +240,29 @@ class SoundEngine {
     const ctx = this.ctx!;
     const gain = ctx.createGain();
     gain.gain.value = 0;
-    gain.connect(this.master!);
+    gain.connect(this.amb!);
     let stop = () => undefined as void;
 
-    if (l === 'crickets') {
+    if (l === 'tension') {
+      // horror atmosphere recording (silent until the file has loaded)
+      const buf = this.samples.get('tension');
+      if (buf) {
+        const src = this.loopSource(buf);
+        src.connect(gain);
+        src.start();
+        stop = () => src.stop();
+      }
+    }
+
+    if (l === 'crickets' && this.samples.has('night')) {
+      // real night-outside recording, looped and kept quiet
+      const src = this.loopSource(this.samples.get('night')!);
+      const quiet = ctx.createGain();
+      quiet.gain.value = 0.5;
+      src.connect(quiet).connect(gain);
+      src.start();
+      stop = () => src.stop();
+    } else if (l === 'crickets') {
       // chirps: short bursts of a high sine, amplitude-modulated
       const id = window.setInterval(() => {
         const t = ctx.currentTime;
@@ -155,7 +351,7 @@ class SoundEngine {
     o.frequency.exponentialRampToValueAtTime(40, t + 0.25);
     g.gain.setValueAtTime(0.9, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
-    o.connect(g).connect(this.master!);
+    o.connect(g).connect(this.sfx!);
     o.start(t);
     o.stop(t + 0.4);
     this.noiseBurst(0.12, 0.5, 900);
@@ -175,7 +371,7 @@ class SoundEngine {
     g.gain.setValueAtTime(0, t);
     g.gain.linearRampToValueAtTime(0.35, t + 0.1);
     g.gain.linearRampToValueAtTime(0, t + seconds);
-    n.connect(bp).connect(g).connect(this.master!);
+    n.connect(bp).connect(g).connect(this.sfx!);
     n.start(t);
     n.stop(t + seconds + 0.2);
   }
@@ -228,7 +424,7 @@ class SoundEngine {
       g.gain.setValueAtTime(0, t0 + d);
       g.gain.linearRampToValueAtTime(0.18, t0 + d + 0.02);
       g.gain.linearRampToValueAtTime(0, t0 + d + dur);
-      o.connect(bp).connect(g).connect(this.master!);
+      o.connect(bp).connect(g).connect(this.sfx!);
       o.start(t0 + d);
       o.stop(t0 + d + dur + 0.05);
     });
@@ -245,7 +441,7 @@ class SoundEngine {
     o.frequency.value = freq;
     g.gain.setValueAtTime(vol, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-    o.connect(g).connect(this.master!);
+    o.connect(g).connect(this.sfx!);
     o.start(t);
     o.stop(t + dur + 0.02);
   }
@@ -259,7 +455,7 @@ class SoundEngine {
     const g = this.ctx.createGain();
     g.gain.setValueAtTime(vol, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-    n.connect(lp).connect(g).connect(this.master!);
+    n.connect(lp).connect(g).connect(this.sfx!);
     n.start(t);
     n.stop(t + dur + 0.05);
   }
@@ -283,3 +479,7 @@ export const Sound = new SoundEngine();
 
 // unlock on the first gesture anywhere
 ['pointerdown', 'keydown'].forEach((ev) => window.addEventListener(ev, () => Sound.unlock(), { capture: true }));
+// click sound for every on-page button (title menu, ?, ⚙, settings)
+window.addEventListener('click', (e) => {
+  if ((e.target as HTMLElement | null)?.closest?.('button')) Sound.click();
+}, { capture: true });

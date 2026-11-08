@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { Sound } from '../audio/Sound';
 import dialogue from '../data/dialogue.json';
 
 /** Rolling credits ending on THE END. */
@@ -57,7 +58,10 @@ export default class Credits extends Phaser.Scene {
 
     const target = 540 - endY - 40;
     const duration = (1120 - target) * (overlay ? 16 : 14);
-    const tw = this.tweens.add({ targets: roll, y: target, duration, ease: 'Linear', onComplete: () => this.showAgain() });
+    const tw = this.tweens.add({ targets: roll, y: target, duration, ease: 'Linear', onComplete: () => {
+        Sound.stopMusic(6); // music fades out on THE END
+        this.showAgain();
+      } });
     this.input.keyboard?.on('keydown-SPACE', () => (tw.timeScale = 4));
     this.input.keyboard?.on('keyup-SPACE', () => (tw.timeScale = 1));
     this.input.on('pointerdown', () => (tw.timeScale = 4));
@@ -71,6 +75,9 @@ export default class Credits extends Phaser.Scene {
       .setAlpha(0)
       .setInteractive({ useHandCursor: true });
     this.tweens.add({ targets: b, alpha: 1, delay: 1500, duration: 600 });
-    b.on('pointerup', () => window.location.reload());
+    b.on('pointerup', () => {
+      (window as unknown as { __tipuLeave?: () => void }).__tipuLeave?.();
+      window.location.reload();
+    });
   }
 }

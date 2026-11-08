@@ -26,6 +26,7 @@ export default class DeadStare extends Phaser.Scene {
     this.add.rectangle(960, 540, 1920, 1080, 0x000000, 0.55).setDepth(3);
     const vhs = new VhsFilter(this, 1);
     Sound.mood({ crickets: 0, hum: 0.3, heartbeat: 0.45 });
+    Sound.setIntensity(0.75);
     Sound.setHeartbeatRate(0.8);
     this.cameras.main.fadeIn(500);
 

@@ -40,6 +40,7 @@ export default class Reveal extends Phaser.Scene {
     this.cameras.main.fadeIn(400);
     new VhsFilter(this, 1);
     Sound.mood({ crickets: 0, hum: 0.2, heartbeat: 0.5 });
+    Sound.setIntensity(0.65);
     Sound.setHeartbeatRate(1.6);
     if (!this.anims.exists('reveal_tree_loop')) {
       this.anims.create({ key: 'reveal_tree_loop', frames: this.anims.generateFrameNumbers('reveal_tree'), frameRate: 6, repeat: -1 });
@@ -72,6 +73,7 @@ export default class Reveal extends Phaser.Scene {
     // white flash
     Sound.glitch();
     Sound.mood({ heartbeat: 0, hum: 0.12 });
+    Sound.setIntensity(0.3);
     const flash = this.add.rectangle(960, 540, 1920, 1080, 0xffffff, 1).setDepth(60);
     photo.destroy();
     const { mahsuri } = addTreeAndMahsuri(this);

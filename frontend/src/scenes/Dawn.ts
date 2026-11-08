@@ -66,8 +66,11 @@ export default class Dawn extends Phaser.Scene {
     new VhsFilter(this, 1);
     Sound.mood({ crickets: 0.15, hum: 0, heartbeat: 0 });
     Sound.chime();
+    // ending music fades in over the sunrise and carries on under the credits
+    Sound.setIntensity(0);
+    Sound.music('ending', { vol: 0.6, fade: 4, loop: false });
     this.cameras.main.fadeIn(1500, 0, 0, 0);
-    const osd = this.add.text(50, 40, 'PLAY ▶', { fontFamily: 'Courier New, monospace', fontSize: '40px', color: '#ffffff', fontStyle: 'bold' }).setDepth(200).setShadow(3, 3, '#000', 0);
+    const osd = this.add.text(150, 40, 'PLAY ▶', { fontFamily: 'Courier New, monospace', fontSize: '40px', color: '#ffffff', fontStyle: 'bold' }).setDepth(200).setShadow(3, 3, '#000', 0);
     this.tweens.add({ targets: osd, alpha: 0, delay: 3000, duration: 800 });
 
     // Mahsuri's last line, written softly into the sky, then the credits roll up over the sunrise

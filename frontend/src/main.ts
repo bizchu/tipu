@@ -14,6 +14,7 @@ import DeadStare from './scenes/DeadStare';
 import { showTitleScreen } from './title/TitleScreen';
 import { HelpButton } from './ui/HelpButton';
 import { Sound } from './audio/Sound';
+import { openSettings, SettingsButton } from './ui/Settings';
 
 /**
  * Entry point. Base resolution 1920×1080, scaled to fit the window (letterboxed).
@@ -34,6 +35,13 @@ new FontFace('Creepster', 'url(/fonts/creepster.woff2)').load().then((f) => docu
 const game = new Phaser.Game(config);
 (window as unknown as { __tipu: Phaser.Game }).__tipu = game;
 
+// click sound for anything tappable inside the game canvas (holes, CONTINUE, REW, cards…)
+game.events.once(Phaser.Core.Events.READY, () => {
+  game.scene.scenes.forEach((s) =>
+    s.sys.events.on(Phaser.Scenes.Events.CREATE, () => s.input.on(Phaser.Input.Events.GAMEOBJECT_DOWN, () => Sound.click())),
+  );
+});
+
 function titleRoot(): HTMLElement | null {
   return document.getElementById('title-root');
 }
@@ -42,8 +50,12 @@ let titleCancelled = false;
 
 function startTitle(): void {
   HelpButton.hide();
+  // title music: starts with the first click/key (browser rule) and fades in
+  Sound.music('title', { vol: 0.45, fade: 3, loop: true });
   showTitleScreen({
     onPlay: () => {
+      enterGame();
+      Sound.stopMusic(2);
       Sound.glitch();
       game.scene.start('ChapterCard', { chapter: 1, next: 'Prologue' });
     },
@@ -67,43 +79,26 @@ function startTitle(): void {
   });
 }
 
-function openSettings(): void {
-  if (document.getElementById('settings-modal')) return;
-  let sound = true;
-  try {
-    sound = localStorage.getItem('tipu.sound') !== 'off';
-  } catch {
-    /* storage unavailable */
-  }
-  const m = document.createElement('div');
-  m.id = 'settings-modal';
-  m.innerHTML = `
-    <style>
-      #settings-modal{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;font-family:"Courier New",monospace}
-      #settings-modal .p{background:#140c0a;border:3px solid #d9a54e;padding:32px 40px;color:#f0e6d4;min-width:320px}
-      #settings-modal h2{margin:0 0 20px;font-family:Georgia,serif;color:#f6e2b4}
-      #settings-modal button{all:unset;cursor:pointer;display:block;margin:12px 0;padding:8px 14px;border:1px solid #6d5a55}
-      #settings-modal button:hover,#settings-modal button:focus-visible{border-color:#ff3a2a;color:#ff3a2a}
-    </style>
-    <div class="p" role="dialog" aria-label="Settings">
-      <h2>Settings</h2>
-      <button id="s-sound">Sound: ${sound ? 'ON' : 'OFF'}</button>
-      <button id="s-close">Close</button>
-    </div>`;
-  document.body.appendChild(m);
-  m.querySelector('#s-sound')!.addEventListener('click', (e) => {
-    sound = !sound;
-    try {
-      localStorage.setItem('tipu.sound', sound ? 'on' : 'off');
-    } catch {
-      /* ignore */
-    }
-    (e.target as HTMLElement).textContent = `Sound: ${sound ? 'ON' : 'OFF'}`;
-    Sound.setEnabled(sound);
-  });
-  m.querySelector('#s-close')!.addEventListener('click', () => m.remove());
-  (m.querySelector('#s-close') as HTMLElement).focus();
+// Once the game has started, refreshing or closing the tab asks "are you sure?"
+// (browsers show their own wording, e.g. "Leave site? Changes may not be saved").
+let inGame = false;
+function enterGame(): void {
+  inGame = true;
+  SettingsButton.show(game);
 }
+window.addEventListener('beforeunload', (e) => {
+  if (!inGame) return;
+  e.preventDefault();
+  e.returnValue = '';
+});
+// Esc opens Settings at any time once the game has started
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && inGame && !document.getElementById('settings-modal')) openSettings();
+});
+/** lets PLAY AGAIN reload without the prompt */
+(window as unknown as { __tipuLeave: () => void }).__tipuLeave = () => {
+  inGame = false;
+};
 
 startTitle();
 
@@ -140,6 +135,8 @@ window.addEventListener(
   if (!t) return;
   dPressedAt = -Infinity;
   titleCancelled = true;
+  enterGame();
+  Sound.stopMusic(1);
   titleRoot()?.remove();
   game.scene.getScenes(true).forEach((s) => game.scene.stop(s.scene.key));
   game.scene.start(t[0], t[1]);

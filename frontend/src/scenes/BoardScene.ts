@@ -126,6 +126,9 @@ export default class BoardScene extends Phaser.Scene {
   private caughtCount = 0;
   /** consecutive failed attempts (wrong taps or missed cheats); 3 → show where to tap */
   private failStreak = 0;
+  private portraitPose = 'calm';
+  /** how many times the opponent has lost their temper this round (drives the music) */
+  private angerLevel = 0;
   private rewindCallout: Phaser.GameObjects.Container | null = null;
 
   constructor() {
@@ -258,8 +261,10 @@ export default class BoardScene extends Phaser.Scene {
     // VHS look + sound mood (heavier and tenser in round 2)
     const round2 = this.resolvedConfig.round === 2;
     new VhsFilter(this, round2 ? 1 : 0);
-    Sound.mood(round2 ? { crickets: 0.3, hum: 0.35, heartbeat: 0.3 } : { crickets: 0.5, hum: 0.25, heartbeat: 0 });
+    Sound.mood(round2 ? { crickets: 0.3, hum: 0.3, heartbeat: 0 } : { crickets: 0.5, hum: 0.2, heartbeat: 0 });
     Sound.setHeartbeatRate(1);
+    this.angerLevel = 0;
+    this.updateIntensity();
 
     // Tape health HUD (top-right) with ◀◀ REW chip
     this.tapeHud = new TapeHud(this, this.resolvedConfig.round);
@@ -512,12 +517,19 @@ export default class BoardScene extends Phaser.Scene {
     this.rewindCallout = box;
   }
 
+  /** horror music under the round: louder in round 2, as the opponent gets angrier and as the tape wears out */
+  private updateIntensity(): void {
+    const base = this.resolvedConfig.round === 2 ? 0.35 : 0.15;
+    Sound.setIntensity(base + this.angerLevel * 0.12 + (1 - this.health) * 0.35);
+  }
+
   private hurtTape(amount: number): void {
     this.health = damage(this.health, amount);
     this.tapeHud.setHealth(this.health);
     Sound.hurt();
-    Sound.mood({ heartbeat: 0.25 + (1 - this.health) * 0.5 });
     Sound.setHeartbeatRate(1 + (1 - this.health) * 1.2);
+    Sound.heartbeatBurst(5);
+    this.updateIntensity();
     this.cameras.main.shake(140, 0.006);
   }
 
@@ -835,6 +847,12 @@ export default class BoardScene extends Phaser.Scene {
   // --------------------------------------------------------------------------
 
   private setPortrait(pose: 'calm' | 'annoyed' | 'angry'): void {
+    if (pose === 'angry' && this.portraitPose !== 'angry') {
+      Sound.angry();
+      this.angerLevel = Math.min(4, this.angerLevel + 1);
+      this.updateIntensity();
+    }
+    this.portraitPose = pose;
     const { opponent } = this.resolvedConfig;
     const key = `${opponent}_${pose}`;
     this.portraitSprite.setTexture(this.textures.exists(key) ? key : `${opponent}_calm`);

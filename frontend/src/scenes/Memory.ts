@@ -47,6 +47,7 @@ export default class Memory extends Phaser.Scene {
     this.cameras.main.fadeIn(600);
     new VhsFilter(this, 0);
     Sound.mood({ crickets: 0.15, hum: 0.2, heartbeat: 0 });
+    Sound.setIntensity(0.1);
 
     const cards = items.map((it) => {
       const key = `mem_${it.card}`;

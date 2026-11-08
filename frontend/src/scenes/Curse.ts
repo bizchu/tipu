@@ -31,6 +31,7 @@ export default class Curse extends Phaser.Scene {
     addTreeAndMahsuri(this);
     new VhsFilter(this, 1);
     Sound.mood({ crickets: 0, hum: 0.15, heartbeat: 0 });
+    Sound.setIntensity(0.4);
     const dim = this.add.rectangle(960, 540, 1920, 1080, 0x000000, 0).setDepth(8);
     this.tweens.add({ targets: dim, fillAlpha: 0.55, duration: 600 });
     const box = new StoryBox(this);

@@ -27,7 +27,7 @@ export default class ChapterCard extends Phaser.Scene {
     glow.setAlpha(0.6);
 
     const osd = { fontFamily: 'Courier New, monospace', fontSize: '40px', color: '#f0f0f0', fontStyle: 'bold' };
-    this.add.text(50, 40, '▶ PLAY', osd);
+    this.add.text(150, 40, '▶ PLAY', osd);
     this.add.text(1870, 40, `TAPE ${data.chapter}`, osd).setOrigin(1, 0);
 
     if (!this.anims.exists('tape_spin')) {
@@ -60,6 +60,7 @@ export default class ChapterCard extends Phaser.Scene {
     this.cameras.main.fadeIn(400);
     new VhsFilter(this, data.chapter === 2 ? 1 : 0);
     Sound.mood({ crickets: 0, hum: 0.3, heartbeat: 0 });
+    Sound.setIntensity(0.15);
     Sound.whirr(0.8);
     this.time.delayedCall(3600, go);
     this.time.delayedCall(800, () => this.input.once('pointerup', go));

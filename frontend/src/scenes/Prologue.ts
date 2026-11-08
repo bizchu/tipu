@@ -24,7 +24,8 @@ export default class Prologue extends Phaser.Scene {
     HelpButton.hide(); // the story box covers the bottom-left; ? returns in gameplay
     addAmbience(this, 'room');
     new VhsFilter(this, 0, 85);
-    Sound.mood({ crickets: 0.5, hum: 0.25, heartbeat: 0 });
+    Sound.mood({ crickets: 0.5, hum: 0.2, heartbeat: 0 });
+    Sound.setIntensity(0.1);
     const mahsuri = this.add.image(960, 1080, 'mahsuri_confused').setOrigin(0.5, 1).setDepth(5);
     const wan = this.add.image(960, 1000, 'wan_mahora_calm').setOrigin(0.5, 1).setDepth(5).setAlpha(0);
     const board = this.add.image(960, 1050, 'board_angled').setOrigin(0.5, 1).setDisplaySize(1000, 152).setDepth(6).setAlpha(0);
@@ -35,7 +36,7 @@ export default class Prologue extends Phaser.Scene {
     const lidTop = this.add.rectangle(960, 0, 1920, 540, 0x000000).setOrigin(0.5, 0).setDepth(90);
     const lidBot = this.add.rectangle(960, 1080, 1920, 540, 0x000000).setOrigin(0.5, 1).setDepth(90);
     const osd = this.add
-      .text(50, 40, '▶ PLAY', { fontFamily: 'Courier New, monospace', fontSize: '40px', color: '#ffffff', fontStyle: 'bold' })
+      .text(150, 40, '▶ PLAY', { fontFamily: 'Courier New, monospace', fontSize: '40px', color: '#ffffff', fontStyle: 'bold' })
       .setDepth(95);
     this.tweens.add({ targets: osd, alpha: 0, delay: 1600, duration: 600 });
 

@@ -48,7 +48,8 @@ export class StoryBox {
       .setOrigin(0, 0.5)
       .setDepth(depth + 2);
     this.arrow = scene.add
-      .text(x + w - 150, y + h - 58, '▼', { fontFamily: 'Georgia, serif', fontSize: '26px', color: '#d6aa5a' })
+      .text(x + w - 130, y + h - 56, 'tap or SPACE  ▼', { fontFamily: 'Georgia, serif', fontSize: '24px', color: '#d6aa5a', fontStyle: 'italic' })
+      .setOrigin(1, 0)
       .setDepth(depth + 2)
       .setVisible(false);
     scene.tweens.add({ targets: this.arrow, alpha: 0.2, yoyo: true, repeat: -1, duration: 450 });
