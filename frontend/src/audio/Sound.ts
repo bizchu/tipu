@@ -9,13 +9,14 @@
  * tape damage, flicker buzz, page turn.
  */
 type Layer = 'crickets' | 'hum' | 'heartbeat' | 'tension';
-type Sample = 'night' | 'tension' | 'title' | 'ending';
+type Sample = 'night' | 'tension' | 'title' | 'ending' | 'button';
 /** Music and ambience recordings (all from Pixabay, see CREDITS.md). Loops were pre-crossfaded so they repeat smoothly. */
 const SAMPLE_FILES: Record<Sample, string> = {
   night: 'audio/night.mp3',
   tension: 'audio/tension.mp3',
   title: 'audio/title.mp3',
   ending: 'audio/ending.mp3',
+  button: 'audio/button.mp3',
 };
 /** layers that are driven by a recording, restarted once their file finishes loading */
 const LAYER_SAMPLE: Partial<Record<Layer, Sample>> = { crickets: 'night', tension: 'tension' };
@@ -95,7 +96,20 @@ class SoundEngine {
 
   /** UI button click */
   click(): void {
-    this.blip(900, 0.05, 0.12, 'square');
+    if (!this.oneShot('button', 0.7)) this.blip(900, 0.05, 0.12, 'square');
+  }
+
+  /** play a loaded recording once on the effects bus; false if it isn't loaded */
+  private oneShot(k: Sample, vol: number): boolean {
+    const buf = this.samples.get(k);
+    if (!buf || !this.ctx || !this.sfx) return false;
+    const src = this.ctx.createBufferSource();
+    const g = this.ctx.createGain();
+    src.buffer = buf;
+    g.gain.value = vol;
+    src.connect(g).connect(this.sfx);
+    src.start();
+    return true;
   }
 
   /** opponent loses their temper: low growl, the tension music swells and a few heartbeats */
@@ -392,6 +406,7 @@ class SoundEngine {
   }
 
   page(): void {
+    if (this.oneShot('button', 0.6)) return;
     this.noiseBurst(0.12, 0.18, 2500);
   }
 

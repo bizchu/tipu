@@ -91,6 +91,18 @@ const LINES = {
   },
 } as const;
 
+/** What the name tag says before they introduce themselves (Mahsuri has lost her memory). */
+const UNKNOWN: Record<ResolvedConfig['opponent'], string> = {
+  wan_mahora: 'The Woman',
+  village_chief: 'The Man',
+};
+
+/** Said on their first turn; after this the name tag shows their real name. */
+const INTRO: Record<ResolvedConfig['opponent'], string> = {
+  wan_mahora: "You don't even remember me? Tsk. I'm Wan Mahora, sayang... the village chief's wife.",
+  village_chief: 'You have forgotten your own chief? I rule this village. Wan Mahora is my wife.',
+};
+
 const SEED_SIZE = 40;
 const ARC = 70;
 const SOW_MS = 210;
@@ -130,6 +142,8 @@ export default class BoardScene extends Phaser.Scene {
   /** how many times the opponent has lost their temper this round (drives the music) */
   private angerLevel = 0;
   private rewindCallout: Phaser.GameObjects.Container | null = null;
+  /** shown when you have no moves left but can still rewind a cheat */
+  private lastChanceBtn: Phaser.GameObjects.Text | null = null;
 
   constructor() {
     super({ key: 'BoardScene' });
@@ -173,10 +187,15 @@ export default class BoardScene extends Phaser.Scene {
     this.previewGfx = null;
     this.oppExtraTurnCount = 0;
     this.wrongClicks = 0;
+    // they ignored the rewind hint and played on: put the box away
+    this.rewindCallout?.destroy();
+    this.rewindCallout = null;
     this.cheatPlan = planCheats(this.resolvedConfig.round);
     this.oppMoveCount = 0;
     this.turnMoves = [];
     this.lastOppTurn = [];
+    this.lastChanceBtn = null;
+    this.rewindCallout = null;
     this.rewinds = 3;
     this.health = TAPE.start;
     this.cheatsSeen = 0;
@@ -243,7 +262,7 @@ export default class BoardScene extends Phaser.Scene {
     this.add.image(50, 610, 'textbox_gameplay').setOrigin(0, 0).setDepth(40);
     this.add.image(170, 576, 'nametag').setOrigin(0, 0).setDepth(41);
     this.dialogueName = this.add
-      .text(320, 606, NAMES[opponent], { fontFamily: 'Georgia, serif', fontSize: '26px', color: '#f6e2b4', fontStyle: 'bold' })
+      .text(320, 606, this.oppLabel(), { fontFamily: 'Georgia, serif', fontSize: '26px', color: '#f6e2b4', fontStyle: 'bold' })
       .setOrigin(0.5)
       .setDepth(42);
     this.dialogueText = this.add
@@ -292,7 +311,7 @@ export default class BoardScene extends Phaser.Scene {
       this.holes[index].zone.on('pointerup', () => this.onWrongClick('Those are her holes. Pick one of the glowing holes on your side.'));
     });
 
-    this.say(NAMES[opponent], LINES[opponent].start);
+    this.say(this.oppLabel(), LINES[opponent].start);
     this.startPlayerTurn();
   }
 
@@ -301,7 +320,26 @@ export default class BoardScene extends Phaser.Scene {
   // --------------------------------------------------------------------------
 
   private startPlayerTurn(): void {
+    this.lastChanceBtn?.destroy();
+    this.lastChanceBtn = null;
     if (!hasLegalMove(this.board, true)) {
+      // Their last move cheated and you can still rewind: don't end the game before you get the chance.
+      if (this.rewinds > 0 && this.lastOppTurn.some((t) => t.move.cheat)) {
+        this.sceneState = SceneState.PLAYER_TURN;
+        this.say('???', "No moves left... but that last move looked wrong. ◀◀ REW before it's over!");
+        this.tweens.add({ targets: this.tapeHud.rewChip, scale: 1.3, yoyo: true, repeat: 9, duration: 300 });
+        this.lastChanceBtn = this.add
+          .text(960, 860, 'Let it end ▶', { fontFamily: 'Courier New, monospace', fontSize: '28px', color: '#ffffff', backgroundColor: '#3a2a22', padding: { x: 18, y: 8 } })
+          .setOrigin(0.5)
+          .setDepth(60)
+          .setInteractive({ useHandCursor: true })
+          .on('pointerup', () => {
+            this.lastChanceBtn?.destroy();
+            this.lastChanceBtn = null;
+            this.endGame(getWinner(this.board));
+          });
+        return;
+      }
       this.endGame(getWinner(this.board));
       return;
     }
@@ -348,7 +386,7 @@ export default class BoardScene extends Phaser.Scene {
     const { opponent } = this.resolvedConfig;
     if (result.captured && result.captureHole !== undefined && (OPP_HOLES as readonly number[]).includes(result.captureHole)) {
       this.setPortrait('angry');
-      this.say(NAMES[opponent], pick(LINES[opponent].captured));
+      this.say(this.oppLabel(), pick(LINES[opponent].captured));
     }
     if (result.extraTurn) {
       this.say('???', 'Another turn!');
@@ -365,11 +403,20 @@ export default class BoardScene extends Phaser.Scene {
     }
     this.sceneState = SceneState.OPP_TURN;
     const { opponent } = this.resolvedConfig;
+    // first turn of the round: they introduce themselves while playing
+    const introKey = `introduced_${this.resolvedConfig.round}`;
+    const intro = !this.registry.get(introKey) && this.oppExtraTurnCount === 0;
     this.time.delayedCall(700, () => {
       this.setPortrait('calm');
-      if (this.oppExtraTurnCount === 0) this.say(NAMES[opponent], pick(LINES[opponent].myTurn));
+      if (intro) {
+        this.say(this.oppLabel(), INTRO[opponent]);
+        this.time.delayedCall(2600, () => {
+          this.registry.set(introKey, true);
+          this.say(this.oppLabel(), pick(LINES[opponent].myTurn));
+        });
+      } else if (this.oppExtraTurnCount === 0) this.say(this.oppLabel(), pick(LINES[opponent].myTurn));
     });
-    this.time.delayedCall(800 + Math.random() * 400 + 600, () => {
+    this.time.delayedCall(800 + Math.random() * 400 + 600 + (intro ? 3400 : 0), () => {
       const hole = selectOpponentHole(this.board);
       this.runOpponentMove(hole).catch((err) => console.error('opponent move failed', err));
     });
@@ -434,6 +481,8 @@ export default class BoardScene extends Phaser.Scene {
     this.tweens.killTweensOf(this.tapeHud.rewChip);
     this.rewindCallout?.destroy();
     this.rewindCallout = null;
+    this.lastChanceBtn?.destroy();
+    this.lastChanceBtn = null;
     this.tapeHud.rewChip.setScale(1);
     this.rewinds--;
     this.tapeHud.setRewinds(this.rewinds);
@@ -459,7 +508,7 @@ export default class BoardScene extends Phaser.Scene {
         if (!t.move.cheat) continue;
         for (let i = 0; i < 8; i++) this.board[i] = Math.max(0, this.board[i] + (t.move.legalBoard[i] - t.move.finalBoard[i]));
         const type = t.move.cheat.type;
-        this.say(NAMES[opponent], pick(LINES[opponent].caught));
+        this.say(this.oppLabel(), pick(LINES[opponent].caught));
         this.time.delayedCall(1800, () => this.say('???', CHEAT_TELLS[type] + ' Undone.'));
         t.move.cheat = null;
       }
@@ -480,7 +529,7 @@ export default class BoardScene extends Phaser.Scene {
       }
     } else {
       this.hurtTape(TAPE.cleanRewind);
-      this.say(NAMES[opponent], pick(LINES[opponent].clean));
+      this.say(this.oppLabel(), pick(LINES[opponent].clean));
     }
 
     if (this.health <= 0) {
@@ -511,6 +560,10 @@ export default class BoardScene extends Phaser.Scene {
       .setOrigin(0.5);
     const arrow = this.add.text(380, -200, '⬈', { fontFamily: 'Arial', fontSize: '110px', color: '#ff4a3a' }).setOrigin(0.5);
     box.add([bg, t1, t2, t3, arrow]).setScale(0.6).setAlpha(0);
+    this.rewindCallout?.destroy();
+    this.rewindCallout = box;
+    // tapping the box also rewinds
+    bg.setInteractive({ useHandCursor: true }).on('pointerup', () => this.onRewind());
     this.tweens.add({ targets: box, scale: 1, alpha: 1, duration: 260, ease: 'Back.easeOut' });
     this.tweens.add({ targets: arrow, x: 400, y: -220, yoyo: true, repeat: -1, duration: 400 });
     this.tweens.add({ targets: this.tapeHud.rewChip, scale: 1.3, yoyo: true, repeat: -1, duration: 350 });
@@ -555,10 +608,10 @@ export default class BoardScene extends Phaser.Scene {
 
   private endOpponentTurn(result: FullMoveResult): void {
     const { opponent } = this.resolvedConfig;
-    if (result.captured) this.say(NAMES[opponent], pick(LINES[opponent].capturing));
+    if (result.captured) this.say(this.oppLabel(), pick(LINES[opponent].capturing));
     if (result.extraTurn && this.oppExtraTurnCount < MAX_OPP_EXTRA_TURNS) {
       this.oppExtraTurnCount++;
-      this.say(NAMES[opponent], pick(LINES[opponent].extra));
+      this.say(this.oppLabel(), pick(LINES[opponent].extra));
       this.triggerOpponentTurn();
       return;
     }
@@ -566,14 +619,18 @@ export default class BoardScene extends Phaser.Scene {
     this.lastOppTurn = this.turnMoves;
     this.turnMoves = [];
     const cheated = this.lastOppTurn.some((t) => t.move.cheat);
+    // only nudge if the player hasn't already rewound / moved in the meantime
+    const stillWaiting = () => this.sceneState === SceneState.PLAYER_TURN && this.lastOppTurn.some((t) => t.move.cheat);
     if (cheated && this.cheatsSeen === 1) {
       // first cheat of the round: spell it out
       this.time.delayedCall(700, () => {
+        if (!stillWaiting()) return;
         this.say('???', 'Wait... what was that? Why did the lights go out?');
         this.showRewindCallout();
       });
     } else if (cheated) {
       this.time.delayedCall(700, () => {
+        if (!stillWaiting()) return;
         this.say('???', 'The lights flickered again... did something change? ◀◀ REW to check.');
         this.tweens.add({ targets: this.tapeHud.rewChip, scale: 1.3, yoyo: true, repeat: 7, duration: 300 });
       });
@@ -581,12 +638,49 @@ export default class BoardScene extends Phaser.Scene {
     this.startPlayerTurn();
   }
 
-  private endGame(result: GameResult): void {
+  private async endGame(result: GameResult): Promise<void> {
     this.sceneState = SceneState.GAME_OVER;
     this.removeAllGlows();
     this.clearPreview();
     this.holes.forEach((h) => h.zone.disableInteractive());
+    this.rewindCallout?.destroy();
+    this.rewindCallout = null;
     this.setPortrait(result === 'player' ? 'angry' : 'calm');
+    if (result === 'player' && this.resolvedConfig.round === 1) await this.wanMahoraLoses();
+    this.showResultPanel(result);
+  }
+
+  /** Round 1 win: Wan Mahora drops the sweet act, mocks Mahsuri, then offers to "show" her. */
+  private async wanMahoraLoses(): Promise<void> {
+    const name = this.oppLabel();
+    const p = this.portraitSprite;
+    const baseY = p.y;
+    this.cameras.main.shake(260, 0.006);
+    Sound.glitch();
+    this.tweens.add({ targets: p, scale: p.scale * 1.06, yoyo: true, duration: 140 });
+    const lines = [
+      '...You won?',
+      "Hah! Don't look so pleased, sayang.",
+      'A village girl, playing at being clever.',
+      'You want to remember so badly?',
+    ];
+    for (const l of lines) {
+      this.say(name, l);
+      await this.delay(2400);
+    }
+    // she leans in close for the last line
+    Sound.heartbeatBurst(5);
+    Sound.setIntensity(0.6);
+    this.tweens.add({ targets: p, scale: p.scale * 1.12, y: baseY + 30, duration: 900, ease: 'Sine.easeInOut' });
+    this.say(name, "Fine. I'll show you.");
+    await this.delay(2600);
+    const flash = this.add.rectangle(960, 540, 1920, 1080, 0xffffff, 0).setDepth(90);
+    Sound.glitch();
+    await new Promise<void>((r) => this.tweens.add({ targets: flash, fillAlpha: 0.85, yoyo: true, duration: 180, onComplete: () => r() }));
+    flash.destroy();
+  }
+
+  private showResultPanel(result: GameResult): void {
 
     const overlay = this.add.container(0, 0).setDepth(100);
     const dim = this.add.rectangle(960, 540, 1920, 1080, 0x000000, 0.55).setInteractive();
@@ -595,7 +689,7 @@ export default class BoardScene extends Phaser.Scene {
       .text(960, 480, resultMessage(result), { fontFamily: 'Georgia, serif', fontSize: '56px', color: '#f6e2b4', fontStyle: 'bold' })
       .setOrigin(0.5);
     const score = this.add
-      .text(960, 545, `Your house ${this.board[3]}  ·  ${NAMES[this.resolvedConfig.opponent]} ${this.board[7]}`, {
+      .text(960, 545, `Your house ${this.board[3]}  ·  ${this.oppLabel()} ${this.board[7]}`, {
         fontFamily: 'Georgia, serif',
         fontSize: '24px',
         color: '#d8c8b0',
@@ -856,6 +950,12 @@ export default class BoardScene extends Phaser.Scene {
     const { opponent } = this.resolvedConfig;
     const key = `${opponent}_${pose}`;
     this.portraitSprite.setTexture(this.textures.exists(key) ? key : `${opponent}_calm`);
+  }
+
+  /** opponent's name tag: unknown until they introduce themselves (remembered across retries) */
+  private oppLabel(): string {
+    const { opponent, round } = this.resolvedConfig;
+    return this.registry.get(`introduced_${round}`) ? NAMES[opponent] : UNKNOWN[opponent];
   }
 
   private say(name: string, text: string): void {

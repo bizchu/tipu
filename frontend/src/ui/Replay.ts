@@ -50,7 +50,7 @@ export async function playReplay(
   // ---- VHS rewind transition ----
   const tear = scene.add.graphics().setDepth(D + 50);
   const rew = scene.add
-    .text(60, 50, '◀◀ REWIND', { fontFamily: 'Courier New, monospace', fontSize: '54px', color: '#ffffff', fontStyle: 'bold' })
+    .text(150, 50, '◀◀ REWIND', { fontFamily: 'Courier New, monospace', fontSize: '54px', color: '#ffffff', fontStyle: 'bold' })
     .setDepth(D + 51)
     .setShadow(3, 0, '#ff2a2a', 0, true, true);
   for (let i = 0; i < 10; i++) {

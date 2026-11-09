@@ -16,22 +16,22 @@
       "text": "I can't remember anything... not even my name."
     },
     {
-      "name": "Wan Mahora",
+      "name": "The Woman",
       "pose": "wan_mahora:calm",
       "text": "Ah... you're finally awake."
     },
     {
-      "name": "Wan Mahora",
+      "name": "The Woman",
       "pose": "wan_mahora:calm",
       "text": "Don't look so frightened, sayang."
     },
     {
-      "name": "Wan Mahora",
+      "name": "The Woman",
       "pose": "wan_mahora:calm",
       "text": "Play a game of congkak with me. Win, and I'll help you remember."
     },
     {
-      "name": "Wan Mahora",
+      "name": "The Woman",
       "pose": "wan_mahora:calm",
       "text": "Go on. You go first."
     }
@@ -41,13 +41,13 @@
       "bab": "BAB 1  ·  CHAPTER 1",
       "title": "Pembohongan",
       "subtitle": "The Lie",
-      "opponent": "Wan Mahora"
+      "opponent": "Opponent: ???"
     },
     "2": {
       "bab": "BAB 2  ·  CHAPTER 2",
       "title": "Kebenaran",
       "subtitle": "The Truth",
-      "opponent": "The Village Chief"
+      "opponent": "Opponent: ???"
     }
   },
   "memory1": [

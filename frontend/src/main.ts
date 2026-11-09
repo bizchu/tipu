@@ -53,6 +53,11 @@ function startTitle(): void {
   // title music: starts with the first click/key (browser rule) and fades in
   Sound.music('title', { vol: 0.45, fade: 3, loop: true });
   showTitleScreen({
+    onKnob: () => {
+      Sound.unlock();
+      Sound.click();
+    },
+    onVolume: (v) => Sound.setVolume('ambience', v),
     onPlay: () => {
       enterGame();
       Sound.stopMusic(2);

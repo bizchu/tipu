@@ -7,7 +7,7 @@ import { addTreeAndMahsuri, preloadTree } from './Reveal';
 
 // top-left → bottom-right, but kept clear of Mahsuri's face in the middle
 const POS = [
-  { x: 330, y: 240, r: -5 },
+  { x: 410, y: 285, r: -5 },
   { x: 560, y: 520, r: 3 },
   { x: 1360, y: 300, r: -3 },
   { x: 1590, y: 580, r: 4 },
@@ -128,7 +128,7 @@ export default class Curse extends Phaser.Scene {
 
   private showContinue(): void {
     const b = this.add
-      .text(1560, 1000, 'CONTINUE ▶', { fontFamily: 'Courier New, monospace', fontSize: '40px', color: '#ffffff', backgroundColor: '#b8231f', padding: { x: 22, y: 10 } })
+      .text(1500, 920, 'CONTINUE ▶', { fontFamily: 'Courier New, monospace', fontSize: '40px', color: '#ffffff', backgroundColor: '#b8231f', padding: { x: 22, y: 10 } })
       .setOrigin(0.5)
       .setDepth(61)
       .setName('continue')

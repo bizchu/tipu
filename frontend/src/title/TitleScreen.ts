@@ -12,6 +12,37 @@ export interface TitleCallbacks {
   onPlay: () => void;
   onHowTo: () => void;
   onSettings: () => void;
+  /** a knob/button on the TV was clicked (for the click sound) */
+  onKnob?: () => void;
+  /** volume knob turned: 0..1 */
+  onVolume?: (v: number) => void;
+}
+
+function volumeNow(): number {
+  try {
+    const v = localStorage.getItem('tipu.vol.ambience');
+    return v === null ? 0.8 : Number(v);
+  } catch {
+    return 0.8;
+  }
+}
+
+/** Move a mesh's origin to its centre so it spins in place; returns its spin axis (local, thinnest-cylinder axis). */
+function centrePivot(mesh: THREE.Mesh): THREE.Vector3 {
+  const geo = mesh.geometry.clone();
+  geo.computeBoundingBox();
+  const bb = geo.boundingBox!;
+  const c = bb.getCenter(new THREE.Vector3());
+  geo.translate(-c.x, -c.y, -c.z);
+  mesh.geometry = geo;
+  mesh.updateMatrix();
+  const m = mesh.matrix.clone().multiply(new THREE.Matrix4().makeTranslation(c.x, c.y, c.z));
+  m.decompose(mesh.position, mesh.quaternion, mesh.scale);
+  const sz = bb.getSize(new THREE.Vector3());
+  // a knob is a short cylinder: its axis is the dimension that differs most from the other two
+  const d = [Math.abs(sz.x - (sz.y + sz.z) / 2), Math.abs(sz.y - (sz.x + sz.z) / 2), Math.abs(sz.z - (sz.x + sz.y) / 2)];
+  const i = d.indexOf(Math.max(...d));
+  return new THREE.Vector3(i === 0 ? 1 : 0, i === 1 ? 1 : 0, i === 2 ? 1 : 0);
 }
 
 const SCREEN_W = 1024;
@@ -24,13 +55,16 @@ export async function showTitleScreen(cb: TitleCallbacks): Promise<() => void> {
     <style>
       #title-root{position:fixed;inset:0;z-index:20;background:#07060a;overflow:hidden;font-family:"Courier New",monospace}
       #title-root canvas{display:block;width:100%;height:100%}
-      #title-menu{position:absolute;left:60%;top:39%;display:flex;flex-direction:column;gap:2.2vh}
+      #title-menu{position:absolute;right:5vw;top:39%;display:flex;flex-direction:column;gap:2.2vh;transition:opacity .4s}
       #title-menu button{all:unset;cursor:pointer;color:#e8c9b8;font-size:min(3.2vw,5.6vh);letter-spacing:.12em;font-weight:bold;
         display:flex;gap:1.6vw;align-items:center;text-shadow:0 0 12px rgba(255,40,40,.35);transition:color .15s, transform .15s}
       #title-menu button span{width:2.2vw;display:inline-block;text-align:center;color:#c8a89a}
       #title-menu button:hover,#title-menu button:focus-visible{color:#ff3a2a;transform:translateX(.6vw)}
       #title-menu button:focus-visible{outline:2px solid #ff3a2a;outline-offset:6px}
-      #title-hint{position:absolute;right:2vw;bottom:2vh;color:#6d5a55;font-size:min(1.1vw,1.9vh)}
+      #title-hint{position:absolute;right:2vw;bottom:2vh;transition:opacity .4s;color:#8a7570;font-size:min(1.3vw,2.1vh);text-align:right;max-width:60vw}
+      #title-tip{position:absolute;pointer-events:none;padding:4px 10px;background:rgba(20,8,8,.85);border:1px solid #d9a54e;color:#f6e2b4;
+        font-size:min(1.2vw,2vh);white-space:nowrap;transform:translate(14px,14px);display:none}
+      #title-menu button.on{color:#ff3a2a}
       #title-fade{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .6s}
     </style>
     <div id="title-menu">
@@ -38,7 +72,8 @@ export async function showTitleScreen(cb: TitleCallbacks): Promise<() => void> {
       <button id="t-how"><span>?</span>HOW TO PLAY</button>
       <button id="t-set"><span>⚙</span>SETTINGS</button>
     </div>
-    <div id="title-hint">Best with sound on · desktop browser</div>
+    <div id="title-hint">Turn the TV knobs · click the screen or the VCR to play<br>Best with sound on · desktop browser</div>
+    <div id="title-tip"></div>
     <div id="title-fade"></div>`;
   document.body.appendChild(root);
 
@@ -99,10 +134,18 @@ export async function showTitleScreen(cb: TitleCallbacks): Promise<() => void> {
   screenGlow.position.set(0, (tb.min.y + tb.max.y) / 2, tb.max.z + 0.4);
 
   // ---- TV screen: canvas texture with a bloody TIPU! ----
-  const base = document.createElement('canvas');
-  base.width = SCREEN_W;
-  base.height = SCREEN_H;
-  drawTipu(base.getContext('2d')!);
+  // channels: turn the top knob to flip between them, click the screen to choose
+  const CHANNELS = ['TIPU!', '▶ PLAY', '? HOW TO PLAY', '⚙ SETTINGS'] as const;
+  const bases = CHANNELS.map((label, i) => {
+    const c = document.createElement('canvas');
+    c.width = SCREEN_W;
+    c.height = SCREEN_H;
+    if (i === 0) drawTipu(c.getContext('2d')!);
+    else drawChannel(c.getContext('2d')!, label, i + 1);
+    return c;
+  });
+  let channel = 0;
+  let base = bases[0];
   const cv = document.createElement('canvas');
   cv.width = SCREEN_W;
   cv.height = SCREEN_H;
@@ -123,7 +166,123 @@ export async function showTitleScreen(cb: TitleCallbacks): Promise<() => void> {
   scene.add(makeCdStack());
 
   cam.position.set(1.55, tb.max.y * 0.78, 3.5);
-  cam.lookAt(0.85, tb.max.y * 0.5, 0);
+  const camLook = new THREE.Vector3(0.85, tb.max.y * 0.5, 0);
+  cam.lookAt(camLook);
+  // camera move when PLAY is pressed (list of legs, played in order)
+  let camMove: { from: THREE.Vector3; to: THREE.Vector3; lookFrom: THREE.Vector3; lookTo: THREE.Vector3; ms: number }[] = [];
+  let camMoveStart = 0;
+
+  // ---- interactive parts: knobs, power button, VCR ----
+  const tvMeshes: THREE.Mesh[] = [];
+  tvO.traverse((m) => {
+    if ((m as THREE.Mesh).isMesh) tvMeshes.push(m as THREE.Mesh);
+  });
+  const knobCh = tvMeshes[4]; // upper knob
+  const knobVol = tvMeshes[0]; // lower knob
+  const powerBtn = tvMeshes[1];
+  const vcrParts: THREE.Mesh[] = [];
+  vcrO.traverse((m) => {
+    if ((m as THREE.Mesh).isMesh && /^(Tray|Buttons_ctrl|Buttons_power|Button_ch|Main)_low/.test(m.name)) vcrParts.push(m as THREE.Mesh);
+  });
+  const knobAxis = new Map<THREE.Mesh, THREE.Vector3>();
+  [knobCh, knobVol].forEach((k) => k && knobAxis.set(k, centrePivot(k)));
+  const hoverable = [knobCh, knobVol, powerBtn, ...vcrParts].filter(Boolean);
+  hoverable.forEach((m) => {
+    m.material = (m.material as THREE.MeshStandardMaterial).clone();
+  });
+  const LABEL = new Map<THREE.Object3D, string>([
+    [knobCh, 'Channel knob: click to turn'],
+    [knobVol, 'Volume knob: click to turn'],
+    [powerBtn, 'Power'],
+    [screen, ''],
+  ]);
+  vcrParts.forEach((m) => LABEL.set(m, 'VCR: insert the tape ▶ PLAY'));
+  const knobTurn = new Map<THREE.Mesh, { cur: number; target: number }>();
+  [knobCh, knobVol].forEach((k) => k && knobTurn.set(k, { cur: 0, target: 0 }));
+
+  let tvOn = true;
+  let osd = '';
+  let osdUntil = 0;
+  let volStep = Math.round(volumeNow() * 4); // 0..4
+  const menuBtns = ['#t-play', '#t-play', '#t-how', '#t-set'];
+  const setChannel = (c: number) => {
+    channel = (c + CHANNELS.length) % CHANNELS.length;
+    base = bases[channel];
+    burstUntil = performance.now() + 350;
+    osd = `CH ${String(channel + 1).padStart(2, '0')}`;
+    osdUntil = performance.now() + 1500;
+    root.querySelectorAll('#title-menu button').forEach((b) => b.classList.remove('on'));
+    if (channel > 0) root.querySelector(menuBtns[channel])?.classList.add('on');
+  };
+  const chooseChannel = () => {
+    if (!tvOn) return;
+    const id = menuBtns[channel];
+    (root.querySelector(id) as HTMLButtonElement).click();
+  };
+
+  const ray = new THREE.Raycaster();
+  const mouse = new THREE.Vector2();
+  const tip = root.querySelector<HTMLDivElement>('#title-tip')!;
+  let hovered: THREE.Object3D | null = null;
+  const pick = (e: PointerEvent): THREE.Object3D | null => {
+    const r = renderer.domElement.getBoundingClientRect();
+    mouse.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+    ray.setFromCamera(mouse, cam);
+    const hit = ray.intersectObjects([...hoverable, screen], false)[0];
+    return hit ? hit.object : null;
+  };
+  const setGlow = (o: THREE.Object3D | null, on: boolean) => {
+    const mat = o && (o as THREE.Mesh).material;
+    if (mat && 'emissive' in (mat as THREE.MeshStandardMaterial)) (mat as THREE.MeshStandardMaterial).emissive.setHex(on ? 0x5a1a10 : 0x000000);
+  };
+  renderer.domElement.addEventListener('pointermove', (e) => {
+    const o = pick(e);
+    if (o !== hovered) {
+      setGlow(hovered, false);
+      setGlow(o, true);
+      hovered = o;
+    }
+    renderer.domElement.style.cursor = o ? 'pointer' : 'default';
+    const label = o === screen ? (tvOn ? `Click to choose: ${CHANNELS[channel] === 'TIPU!' ? '▶ PLAY' : CHANNELS[channel]}` : '') : o ? LABEL.get(o) ?? '' : '';
+    tip.style.display = label ? 'block' : 'none';
+    tip.textContent = label;
+    tip.style.left = `${e.clientX}px`;
+    tip.style.top = `${e.clientY}px`;
+  });
+  renderer.domElement.addEventListener('pointerdown', (e) => {
+    const o = pick(e);
+    if (!o) return;
+    if (o === knobCh || o === knobVol || o === powerBtn) cb.onKnob?.(); // click sound (screen/VCR use the menu buttons, which click already)
+    if (o === knobCh) {
+      knobTurn.get(knobCh)!.target -= Math.PI / 4;
+      if (tvOn) setChannel(channel + 1);
+    } else if (o === knobVol) {
+      volStep = (volStep + 1) % 5;
+      knobTurn.get(knobVol)!.target = -volStep * (Math.PI / 3);
+      cb.onVolume?.(volStep / 4);
+      osd = `VOLUME ${'▮'.repeat(volStep)}${'▯'.repeat(4 - volStep)}`;
+      osdUntil = performance.now() + 1800;
+      burstUntil = performance.now() + 120;
+    } else if (o === powerBtn) {
+      tvOn = !tvOn;
+      powerAnim = { start: performance.now(), on: tvOn };
+    } else if (o === screen) {
+      chooseChannel();
+    } else if (vcrParts.includes(o as THREE.Mesh)) {
+      // push the tape in, then play
+      const tray = vcrParts.find((m) => m.name.startsWith('Tray')) ?? (o as THREE.Mesh);
+      const z0 = tray.position.z;
+      const t0 = performance.now();
+      const push = () => {
+        const k = Math.min(1, (performance.now() - t0) / 250);
+        tray.position.z = z0 - Math.sin(k * Math.PI) * 0.02 / Math.max(1e-6, tvO.scale.x);
+        if (k < 1) requestAnimationFrame(push);
+      };
+      push();
+      (root.querySelector('#t-play') as HTMLButtonElement).click();
+    }
+  });
+  let powerAnim: { start: number; on: boolean } | null = null;
 
   // ---- sizing: keep a 16:9 view, cover the window ----
   const resize = () => {
@@ -150,9 +309,60 @@ export async function showTitleScreen(cb: TitleCallbacks): Promise<() => void> {
     if (!running) return;
     if (t > burstUntil && Math.random() < 0.02) burstUntil = t + 120 + Math.random() * 380;
     const amt = Math.max(forced, t < burstUntil ? 0.4 + Math.random() * 0.6 : 0.08 * Math.random());
-    glitch(g, base, amt, rnd);
+    if (camMove.length) {
+      let el = t - camMoveStart;
+      for (const leg of camMove) {
+        if (el <= leg.ms || leg === camMove[camMove.length - 1]) {
+          const k = Math.min(1, el / leg.ms);
+          const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; // ease in-out
+          cam.position.lerpVectors(leg.from, leg.to, e);
+          camLook.lerpVectors(leg.lookFrom, leg.lookTo, e);
+          cam.lookAt(camLook);
+          break;
+        }
+        el -= leg.ms;
+      }
+    }
+    knobTurn.forEach((st, k) => {
+      const d = (st.target - st.cur) * 0.2;
+      if (Math.abs(d) > 1e-4) {
+        k.rotateOnAxis(knobAxis.get(k)!, d);
+        st.cur += d;
+      }
+    });
+    // power: CRT collapse to a line when switching off, bloom back when on
+    let pw = tvOn ? 1 : 0;
+    if (powerAnim) {
+      const k = Math.min(1, (t - powerAnim.start) / 350);
+      pw = powerAnim.on ? k : 1 - k;
+      if (k >= 1) powerAnim = null;
+    }
+    if (pw <= 0) {
+      g.clearRect(0, 0, SCREEN_W, SCREEN_H);
+      g.fillStyle = '#030102';
+      g.fillRect(0, 0, SCREEN_W, SCREEN_H);
+      roundedClip(g);
+    } else {
+      glitch(g, base, pw < 1 ? 1 : amt, rnd);
+      if (pw < 1) {
+        const h = SCREEN_H * pw * pw;
+        g.fillStyle = '#030102';
+        g.fillRect(0, 0, SCREEN_W, (SCREEN_H - h) / 2);
+        g.fillRect(0, (SCREEN_H + h) / 2, SCREEN_W, (SCREEN_H - h) / 2 + 1);
+      }
+      if (t < osdUntil) {
+        g.font = 'bold 64px "Courier New", monospace';
+        g.textAlign = 'right';
+        g.textBaseline = 'top';
+        g.fillStyle = '#6cff6c';
+        g.shadowColor = '#0f0';
+        g.shadowBlur = 12;
+        g.fillText(osd, SCREEN_W - 90, 70);
+        g.shadowBlur = 0;
+      }
+    }
     tex.needsUpdate = true;
-    screenGlow.intensity = 8 * (0.75 + 0.5 * Math.random() * (amt > 0.2 ? 1 : 0.4));
+    screenGlow.intensity = pw * 8 * (0.75 + 0.5 * Math.random() * (amt > 0.2 ? 1 : 0.4));
     renderer.render(scene, cam);
     requestAnimationFrame(frame);
   };
@@ -167,18 +377,70 @@ export async function showTitleScreen(cb: TitleCallbacks): Promise<() => void> {
   };
 
   const fade = root.querySelector<HTMLDivElement>('#title-fade')!;
+  let starting = false;
+  const SLOW = location.search.includes('slowplay') ? 10 : 1; // debug: ?slowplay to inspect the camera move
   root.querySelector('#t-play')!.addEventListener('click', () => {
-    forced = 1;
-    fade.style.opacity = '1';
+    if (starting) return;
+    starting = true;
+    (root.querySelector('#title-menu') as HTMLElement).style.opacity = '0';
+    (root.querySelector('#title-hint') as HTMLElement).style.opacity = '0';
+    tip.style.display = 'none';
+    if (!tvOn) {
+      tvOn = true;
+      powerAnim = { start: performance.now(), on: true };
+    }
+    // 1) swing round to face the TV head-on, 2) push into the screen, then cut to the game
+    const tvMid = new THREE.Vector3((tb.min.x + tb.max.x) / 2, (tb.min.y + tb.max.y) / 2, tb.max.z);
+    const front = tvMid.clone().add(new THREE.Vector3(0, 0, (tb.max.y - tb.min.y) * 2.3));
+    const inside = screen.position.clone().add(new THREE.Vector3(0, 0, 0.12));
+    camMove = [
+      { from: cam.position.clone(), to: front, lookFrom: camLook.clone(), lookTo: tvMid.clone(), ms: 1500 * SLOW },
+      { from: front, to: inside, lookFrom: tvMid.clone(), lookTo: screen.position.clone(), ms: 900 * SLOW },
+    ];
+    camMoveStart = performance.now();
+    setTimeout(() => {
+      forced = 1;
+      fade.style.opacity = '1';
+    }, 1900 * SLOW);
     setTimeout(() => {
       destroy();
       cb.onPlay();
-    }, 700);
+    }, 2600 * SLOW);
   });
   root.querySelector('#t-how')!.addEventListener('click', cb.onHowTo);
   root.querySelector('#t-set')!.addEventListener('click', cb.onSettings);
   root.querySelector<HTMLButtonElement>('#t-play')!.focus();
   return destroy;
+}
+
+/** A plain TV channel card: big label + channel number + "click the screen". */
+function drawChannel(g: CanvasRenderingContext2D, label: string, ch: number): void {
+  const grd = g.createRadialGradient(512, 384, 50, 512, 384, 620);
+  grd.addColorStop(0, '#1d0608');
+  grd.addColorStop(1, '#050102');
+  g.fillStyle = grd;
+  g.fillRect(0, 0, SCREEN_W, SCREEN_H);
+  for (let i = 0; i < 6000; i++) {
+    const v = Math.random() * 80;
+    g.fillStyle = `rgba(${v + 40},${v * 0.3},${v * 0.3},0.25)`;
+    g.fillRect(Math.random() * SCREEN_W, Math.random() * SCREEN_H, 2, 2);
+  }
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.font = `bold ${label.length > 8 ? 92 : 130}px "Courier New", monospace`;
+  g.shadowColor = 'rgba(255,40,40,1)';
+  g.shadowBlur = 40;
+  g.fillStyle = '#ff5a4a';
+  g.fillText(label, 512, 360);
+  g.shadowBlur = 0;
+  g.font = 'bold 40px "Courier New", monospace';
+  g.fillStyle = '#e8c9b8';
+  g.fillText('click the screen', 512, 520);
+  g.textAlign = 'left';
+  g.fillText(`CH ${String(ch).padStart(2, '0')}`, 110, 100);
+  g.fillStyle = 'rgba(0,0,0,0.3)';
+  for (let y = 0; y < SCREEN_H; y += 4) g.fillRect(0, y, SCREEN_W, 2);
+  roundedClip(g);
 }
 
 function roundedClip(g: CanvasRenderingContext2D): void {
