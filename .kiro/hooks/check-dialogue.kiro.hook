@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Check dialogue fits the text boxes",
+  "description": "When dialogue.json changes, check line lengths, speaker names and style against the story steering.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["frontend/src/data/dialogue.json"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "dialogue.json was edited. Check: (1) it is valid JSON, (2) no single line is longer than 140 characters (it must fit the story box), (3) opponents are not named before they introduce themselves (use 'The Woman' / 'The Man' before that), (4) the tone matches .kiro/steering/story.md and characters.md. List any problems with the line and a suggested rewrite. Do not edit the file unless asked."
+  }
+}

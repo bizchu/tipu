@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Credit new assets",
+  "description": "When a new image, model or sound is added under assets/, make sure it is credited in CREDITS.md.",
+  "version": "1",
+  "when": {
+    "type": "fileCreated",
+    "patterns": ["assets/**/*.webp", "assets/**/*.jpg", "assets/**/*.png", "assets/**/*.mp3", "assets/**/*.glb"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A new asset was added under assets/. Check CREDITS.md: if this file (or its source) is not credited, add a line under the right heading with a TODO for the source and licence, and remind me that the Kiroween rules require every third-party asset to be properly licensed."
+  }
+}

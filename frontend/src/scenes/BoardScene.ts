@@ -32,6 +32,7 @@ import { HelpButton } from '../ui/HelpButton';
 import { CHEAT_TELLS, CheatPlan, CheatedMove, TAPE, damage, planCheats, playOpponentMove } from '../logic/cheats';
 import { REPLAY_ASSETS, ReplayMove, playReplay } from '../ui/Replay';
 import { Sound } from '../audio/Sound';
+import { getLine } from '../ai/getLine';
 import { VhsFilter } from '../ui/VhsFilter';
 
 export * from './boardScene.helpers';
@@ -508,8 +509,13 @@ export default class BoardScene extends Phaser.Scene {
         if (!t.move.cheat) continue;
         for (let i = 0; i < 8; i++) this.board[i] = Math.max(0, this.board[i] + (t.move.legalBoard[i] - t.move.finalBoard[i]));
         const type = t.move.cheat.type;
-        this.say(this.oppLabel(), pick(LINES[opponent].caught));
-        this.time.delayedCall(1800, () => this.say('???', CHEAT_TELLS[type] + ' Undone.'));
+        const who = this.oppLabel();
+        this.say(who, '...');
+        // live AI reaction (falls back to a scripted line within 2 s)
+        void getLine(opponent, `Mahsuri rewound the tape and caught you cheating: ${CHEAT_TELLS[type]}`, LINES[opponent].caught).then((line) => {
+          if (this.sys.isActive() && this.sceneState !== SceneState.GAME_OVER) this.say(who, line);
+        });
+        this.time.delayedCall(3200, () => this.say('???', CHEAT_TELLS[type] + ' Undone.'));
         t.move.cheat = null;
       }
       this.caughtCount++;

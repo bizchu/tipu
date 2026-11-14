@@ -66,6 +66,11 @@ export async function showTitleScreen(cb: TitleCallbacks): Promise<() => void> {
         font-size:min(1.2vw,2vh);white-space:nowrap;transform:translate(14px,14px);display:none}
       #title-menu button.on{color:#ff3a2a}
       #title-fade{position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .6s}
+      #title-load{position:absolute;left:28%;top:50%;transform:translate(-50%,-50%);white-space:nowrap;color:#e8c9b8;font-size:min(2.4vw,4vh);
+        letter-spacing:.2em;text-align:center;transition:opacity .5s;pointer-events:none}
+      #title-load small{display:block;margin-top:1.2vh;font-size:.5em;color:#8a7570;letter-spacing:.1em}
+      #title-load .blink{animation:tblink 1s steps(2) infinite}
+      @keyframes tblink{to{opacity:0}}
     </style>
     <div id="title-menu">
       <button id="t-play"><span>▶</span>PLAY</button>
@@ -74,6 +79,7 @@ export async function showTitleScreen(cb: TitleCallbacks): Promise<() => void> {
     </div>
     <div id="title-hint">Turn the TV knobs · click the screen or the VCR to play<br>Best with sound on · desktop browser</div>
     <div id="title-tip"></div>
+    <div id="title-load"><span class="blink">▶</span> LOADING TAPE <span id="t-load-pct">0%</span><small>Tip: turn your sound on</small></div>
     <div id="title-fade"></div>`;
   document.body.appendChild(root);
 
@@ -123,7 +129,24 @@ export async function showTitleScreen(cb: TitleCallbacks): Promise<() => void> {
   };
 
   const loader = new GLTFLoader();
-  const [tv, vcr] = await Promise.all([loader.loadAsync('/3d/old_tv.glb'), loader.loadAsync('/3d/vhs_player.glb')]);
+  // loading text with a percentage while the two models download (~4 MB)
+  const pctEl = root.querySelector<HTMLElement>('#t-load-pct');
+  const got = [0, 0];
+  const tot = [1.2e6, 2.5e6];
+  const onProg = (i: number) => (e: ProgressEvent) => {
+    got[i] = e.loaded;
+    if (e.lengthComputable) tot[i] = e.total;
+    if (pctEl) pctEl.textContent = `${Math.min(99, Math.round(((got[0] + got[1]) / (tot[0] + tot[1])) * 100))}%`;
+  };
+  const [tv, vcr] = await Promise.all([
+    loader.loadAsync('/3d/old_tv.glb', onProg(0)),
+    loader.loadAsync('/3d/vhs_player.glb', onProg(1)),
+  ]);
+  const loadEl = root.querySelector<HTMLElement>('#title-load');
+  if (loadEl) {
+    loadEl.style.opacity = '0';
+    setTimeout(() => loadEl.remove(), 600);
+  }
   const vcrO = fit(vcr.scene, 1.1);
   scene.add(vcrO);
   const vb = new THREE.Box3().setFromObject(vcrO);

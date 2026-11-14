@@ -16,13 +16,16 @@ A ~4-minute browser horror game for **Kiroween 2026** (category: Resurrection). 
 The **?** button (bottom-left) opens How to Play at any time.
 
 ## Features
-- 3D title screen (Three.js): old CRT TV on a VHS player with a glitching, bloody TIPU!
+- Interactive 3D title screen (Three.js): turn the TV's channel and volume knobs, switch it off and on, click the VCR to insert the tape; the camera then dives into the screen
 - Two rounds of mini congkak against Wan Mahora and the village chief, with a fully tested rules engine
 - Randomised cheats every round and retry (extra seed, skipped hole, steal, house skim, lights-out swap)
 - VHS rewind replay with timed tap-to-catch, tape health, tape snap and retry
 - Story: prologue, chapter cards, two memory sequences, the chief's dead stare, the reveal, the curse (tap each photo), dawn and rolling credits
 - Animated room (twinkling sky, turning fan, swinging clock pendulum), VHS filter that gets heavier in round 2
-- All sound synthesised live in the browser (crickets, hum, heartbeat, tape whirr, stamp thunk)
+- Live AI taunts: when you catch a cheat, the opponent reacts with a line from Gemini (via a Netlify function), with scripted fallbacks so it never stalls
+- Opponents introduce themselves mid-game (Mahsuri has lost her memory), and Wan Mahora turns on you when you beat her
+- Adaptive horror music: a tension layer swells as opponents get angrier and the tape wears out, plus heartbeat stings, night ambience, title and ending music (Pixabay)
+- Settings any time (⚙ or Esc): sound on/off, separate background and effects volume, full controls list
 
 ### Demo keys (for judges and the video)
 Press **D** then: `1` round 1 · `2` round 2 · `3` prologue · `4` chapter 1 · `5` chapter 2 · `6` how to play · `7` memory 1 · `8` memory 2 · `S` dead stare · `9` reveal · `0` curse · `C` dawn + credits.
@@ -37,11 +40,12 @@ npm run build
 ```
 
 ## Built with
-Kiro (steering, specs, hooks) · Phaser 3 · Three.js · Vite · TypeScript · Vitest + fast-check · Netlify
+Kiro (steering, specs, hooks) · Phaser 3 · Three.js · Vite · TypeScript · Vitest + fast-check · Netlify Functions · Google Gemini API
 
 ## How Kiro was used
 - **Steering** (`.kiro/steering/`): product, tech, structure, gameplay rules, the Mahsuri legend, character voices, visual style and the full script. Every spec and task builds on these.
 - **Specs** (`.kiro/specs/`): congkak-rules, board-scene, story-flow, opponent-cheats, rewind-callout, memories-and-reveal, vhs-effects-and-sound, each with requirements, design and tasks.
+- **Hooks** (`.kiro/hooks/`): run the test suite when game logic changes, check new dialogue fits the text boxes and doesn't reveal names early, and make sure every new asset gets credited.
 - The congkak rules engine and the first half of the board scene were implemented by Kiro from those specs. After the free Kiro credits ran out, the remaining tasks were implemented with another AI assistant, following the same Kiro specs and steering.
 
 ## Credits

@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Run tests when game logic changes",
+  "description": "When a file in frontend/src/logic is saved, run the Vitest + fast-check suite and report any failing rules.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["frontend/src/logic/**/*.ts"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A congkak or cheat logic file was just edited. Run `npm test` in the frontend folder. If anything fails, explain which rule from .kiro/steering/gameplay.md is broken and propose the smallest fix. If everything passes, reply with one line: the number of tests passed."
+  }
+}
