@@ -1,0 +1,270 @@
+{
+  "prologue_01": {
+    "file": "prologue_01.m4a",
+    "hash": "67a7c236a1b3"
+  },
+  "prologue_02": {
+    "file": "prologue_02.m4a",
+    "hash": "786961da99dd"
+  },
+  "prologue_03": {
+    "file": "prologue_03.m4a",
+    "hash": "e29d84cbccc7"
+  },
+  "prologue_04": {
+    "file": "prologue_04.m4a",
+    "hash": "f70252d48742"
+  },
+  "prologue_05": {
+    "file": "prologue_05.m4a",
+    "hash": "3d1e3b28e1de"
+  },
+  "prologue_07": {
+    "file": "prologue_07.m4a",
+    "hash": "8bbae69f1510"
+  },
+  "reveal_01": {
+    "file": "reveal_01.m4a",
+    "hash": "2625770df475"
+  },
+  "reveal_02": {
+    "file": "reveal_02.m4a",
+    "hash": "3f659976bb94"
+  },
+  "reveal_03": {
+    "file": "reveal_03.m4a",
+    "hash": "03c020bf8e58"
+  },
+  "reveal_04": {
+    "file": "reveal_04.m4a",
+    "hash": "d252d920601d"
+  },
+  "reveal_05": {
+    "file": "reveal_05.m4a",
+    "hash": "cf5adbcebc4f"
+  },
+  "reveal_06": {
+    "file": "reveal_06.m4a",
+    "hash": "4e4cda096e9e"
+  },
+  "reveal_07": {
+    "file": "reveal_07.m4a",
+    "hash": "789dc6d22ce3"
+  },
+  "reveal_08": {
+    "file": "reveal_08.m4a",
+    "hash": "cfa5c08fee7e"
+  },
+  "reveal_09": {
+    "file": "reveal_09.m4a",
+    "hash": "b6cbbf24aa7b"
+  },
+  "reveal_10": {
+    "file": "reveal_10.m4a",
+    "hash": "86eb94075711"
+  },
+  "curse_siam_01": {
+    "file": "curse_siam_01.m4a",
+    "hash": "996cf8a47fa5"
+  },
+  "curse_rice_01": {
+    "file": "curse_rice_01.m4a",
+    "hash": "d942661ea901"
+  },
+  "curse_rice_02": {
+    "file": "curse_rice_02.m4a",
+    "hash": "72d0438681e5"
+  },
+  "curse_crops_01": {
+    "file": "curse_crops_01.m4a",
+    "hash": "eec77884c425"
+  },
+  "curse_village_01": {
+    "file": "curse_village_01.m4a",
+    "hash": "36025dbf7801"
+  },
+  "curse_village_02": {
+    "file": "curse_village_02.m4a",
+    "hash": "1a58a6223764"
+  },
+  "curse_village_03": {
+    "file": "curse_village_03.m4a",
+    "hash": "324de9b7b66c"
+  },
+  "curse_end": {
+    "file": "curse_end.m4a",
+    "hash": "998cfa1d99af"
+  },
+  "dawn": {
+    "file": "dawn.m4a",
+    "hash": "a83613ecb88b"
+  },
+  "deadstare_02": {
+    "file": "deadstare_02.m4a",
+    "hash": "bdc4cadb25cb"
+  },
+  "deadstare_03": {
+    "file": "deadstare_03.m4a",
+    "hash": "04c4ec19b00c"
+  },
+  "deadstare_04": {
+    "file": "deadstare_04.m4a",
+    "hash": "9f6f5d3708ef"
+  },
+  "board_wan_start_01": {
+    "file": "board_wan_start_01.m4a",
+    "hash": "0fd1dec0f514"
+  },
+  "board_wan_myTurn_01": {
+    "file": "board_wan_myTurn_01.m4a",
+    "hash": "5460ae121f26"
+  },
+  "board_wan_myTurn_02": {
+    "file": "board_wan_myTurn_02.m4a",
+    "hash": "26f5c06e0721"
+  },
+  "board_wan_myTurn_03": {
+    "file": "board_wan_myTurn_03.m4a",
+    "hash": "648e77d871d0"
+  },
+  "board_wan_extra_01": {
+    "file": "board_wan_extra_01.m4a",
+    "hash": "67b5f88527fa"
+  },
+  "board_wan_extra_02": {
+    "file": "board_wan_extra_02.m4a",
+    "hash": "48e9356a2c67"
+  },
+  "board_wan_captured_01": {
+    "file": "board_wan_captured_01.m4a",
+    "hash": "b0fdb089d126"
+  },
+  "board_wan_captured_02": {
+    "file": "board_wan_captured_02.m4a",
+    "hash": "43a68feadd10"
+  },
+  "board_wan_capturing_01": {
+    "file": "board_wan_capturing_01.m4a",
+    "hash": "0f38b0118b40"
+  },
+  "board_wan_capturing_02": {
+    "file": "board_wan_capturing_02.m4a",
+    "hash": "5e1523e09b5b"
+  },
+  "board_wan_caught_01": {
+    "file": "board_wan_caught_01.m4a",
+    "hash": "700175985ea9"
+  },
+  "board_wan_caught_02": {
+    "file": "board_wan_caught_02.m4a",
+    "hash": "9dcff216f134"
+  },
+  "board_wan_caught_03": {
+    "file": "board_wan_caught_03.m4a",
+    "hash": "df469b9f8157"
+  },
+  "board_wan_clean_02": {
+    "file": "board_wan_clean_02.m4a",
+    "hash": "f09a6174fe6c"
+  },
+  "board_chief_start_01": {
+    "file": "board_chief_start_01.m4a",
+    "hash": "21db06bce8d0"
+  },
+  "board_chief_myTurn_01": {
+    "file": "board_chief_myTurn_01.m4a",
+    "hash": "1630c63e7131"
+  },
+  "board_chief_myTurn_02": {
+    "file": "board_chief_myTurn_02.m4a",
+    "hash": "5175fe6ada40"
+  },
+  "board_chief_myTurn_03": {
+    "file": "board_chief_myTurn_03.m4a",
+    "hash": "fe3e3fdd49b0"
+  },
+  "board_chief_extra_01": {
+    "file": "board_chief_extra_01.m4a",
+    "hash": "5530acd4a35b"
+  },
+  "board_chief_extra_02": {
+    "file": "board_chief_extra_02.m4a",
+    "hash": "beb1a266a0d6"
+  },
+  "board_chief_captured_01": {
+    "file": "board_chief_captured_01.m4a",
+    "hash": "76b4b0991c25"
+  },
+  "board_chief_captured_02": {
+    "file": "board_chief_captured_02.m4a",
+    "hash": "e28742b330bb"
+  },
+  "board_chief_capturing_01": {
+    "file": "board_chief_capturing_01.m4a",
+    "hash": "14ab36753bde"
+  },
+  "board_chief_caught_01": {
+    "file": "board_chief_caught_01.m4a",
+    "hash": "18c53f67ab7f"
+  },
+  "board_chief_caught_02": {
+    "file": "board_chief_caught_02.m4a",
+    "hash": "9b09ad0b52bf"
+  },
+  "board_chief_caught_03": {
+    "file": "board_chief_caught_03.m4a",
+    "hash": "6e665d0fcd1a"
+  },
+  "board_chief_clean_01": {
+    "file": "board_chief_clean_01.m4a",
+    "hash": "68ce752a1e53"
+  },
+  "board_chief_clean_02": {
+    "file": "board_chief_clean_02.m4a",
+    "hash": "ac92ce177546"
+  },
+  "board_chief_intro": {
+    "file": "board_chief_intro.m4a",
+    "hash": "1ff1a828a723"
+  },
+  "board_wan_lose_01": {
+    "file": "board_wan_lose_01.m4a",
+    "hash": "f55da9820c5a"
+  },
+  "board_wan_lose_02": {
+    "file": "board_wan_lose_02.m4a",
+    "hash": "05e5c462fa1b"
+  },
+  "board_wan_lose_final": {
+    "file": "board_wan_lose_final.m4a",
+    "hash": "cacabbd36089"
+  },
+  "curse_crops_02": {
+    "file": "curse_crops_02.m4a",
+    "hash": "4fe227ab6ce1"
+  },
+  "curse_siam_02": {
+    "file": "curse_siam_02.m4a",
+    "hash": "760712385303"
+  },
+  "curse_crops_03": {
+    "file": "curse_crops_03.m4a",
+    "hash": "4d05f384e80e"
+  },
+  "board_wan_clean_01": {
+    "file": "board_wan_clean_01.m4a",
+    "hash": "e0af277eba72"
+  },
+  "prologue_06": {
+    "file": "prologue_06.m4a",
+    "hash": "e15215600fdd"
+  },
+  "board_wan_intro": {
+    "file": "board_wan_intro.m4a",
+    "hash": "8829ba71b747"
+  },
+  "board_chief_capturing_02": {
+    "file": "board_chief_capturing_02.m4a",
+    "hash": "def47b69a82a"
+  }
+}

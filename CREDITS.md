@@ -26,6 +26,11 @@ Music and ambience from [Pixabay](https://pixabay.com) (Pixabay Content License:
 
 Loops were crossfaded and re-encoded for the web. All other sounds (clicks, seeds, rewind, TIPU! stamp, heartbeat, growl, rooster crow) are synthesised in the browser with the Web Audio API.
 
+## Voices
+- Mahsuri, Wan Mahora and the Village Chief: generated with Google Gemini TTS (`gemini-3.1-flash-tts-preview`, via the Gemini API) by `frontend/scripts/make-voices.mjs`. Prebuilt voices: Mahsuri = Zephyr, Wan Mahora = Pulcherrima, Village Chief = Enceladus (ms-MY accent). Style prompts are in `frontend/scripts/voices.config.json`.
+- Memory card narrator: voiced by **Noelle Loh Mei Hui**, with noise/echo reduction and an old-radio / tape filter.
+- Files: `assets/voice/` (`lines.json` lists every line, who says it and its file).
+
 ## Code libraries
 - [Phaser 3](https://phaser.io): MIT License
 - [Three.js](https://threejs.org): MIT License

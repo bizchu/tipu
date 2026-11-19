@@ -3,6 +3,7 @@ import dialogue from '../data/dialogue.json';
 import { StoryBox } from '../ui/StoryBox';
 import { VhsFilter } from '../ui/VhsFilter';
 import { Sound } from '../audio/Sound';
+import { Voice } from '../audio/Voice';
 import { addTreeAndMahsuri, preloadTree } from './Reveal';
 
 // top-left → bottom-right, but kept clear of Mahsuri's face in the middle
@@ -32,6 +33,7 @@ export default class Curse extends Phaser.Scene {
     new VhsFilter(this, 1);
     Sound.mood({ crickets: 0, hum: 0.15, heartbeat: 0 });
     Sound.setIntensity(0.4);
+    Sound.music('story', { vol: 0.45, fade: 4, loop: true }); // keeps playing if it started in the reveal
     const dim = this.add.rectangle(960, 540, 1920, 1080, 0x000000, 0).setDepth(8);
     this.tweens.add({ targets: dim, fillAlpha: 0.55, duration: 600 });
     const box = new StoryBox(this);
@@ -77,6 +79,7 @@ export default class Curse extends Phaser.Scene {
         Sound.page();
         this.openZoom(i, () => {
           hint.setText(status(seen.size));
+          if (seen.size === 4 && !this.children.getByName('continue')) void Voice.speak(dialogue.curseEnd);
           if (seen.size === 4 && !this.children.getByName('continue')) this.showContinue();
         });
       });

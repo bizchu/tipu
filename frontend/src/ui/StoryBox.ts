@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { Voice } from '../audio/Voice';
 
 export interface Line {
   name: string;
@@ -60,6 +61,7 @@ export class StoryBox {
     scene.input.keyboard?.on('keydown-ENTER', advance);
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       scene.input.off('pointerup', advance);
+      Voice.stop();
     });
   }
 
@@ -77,6 +79,7 @@ export class StoryBox {
     this.full = text;
     this.body.setText('');
     this.arrow.setVisible(false);
+    void Voice.speak(text); // stops the previous line's voice if it's still going
     let i = 0;
     this.typing?.remove();
     this.typing = this.scene.time.addEvent({

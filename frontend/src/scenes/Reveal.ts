@@ -74,6 +74,8 @@ export default class Reveal extends Phaser.Scene {
     Sound.glitch();
     Sound.mood({ heartbeat: 0, hum: 0.12 });
     Sound.setIntensity(0.3);
+    // Mahsuri's story music starts here and carries on through the curse photos (if assets/audio/story.mp3 exists)
+    Sound.music('story', { vol: 0.45, fade: 4, loop: true });
     const flash = this.add.rectangle(960, 540, 1920, 1080, 0xffffff, 1).setDepth(60);
     photo.destroy();
     const { mahsuri } = addTreeAndMahsuri(this);

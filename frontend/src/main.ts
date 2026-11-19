@@ -14,6 +14,7 @@ import DeadStare from './scenes/DeadStare';
 import { showTitleScreen } from './title/TitleScreen';
 import { HelpButton } from './ui/HelpButton';
 import { Sound } from './audio/Sound';
+import { Voice } from './audio/Voice';
 import { openSettings, SettingsButton } from './ui/Settings';
 
 /**
@@ -31,6 +32,9 @@ const config: Phaser.Types.Core.GameConfig = {
 
 // Creepster is used by the title TV and the credits
 new FontFace('Creepster', 'url(/fonts/creepster.woff2)').load().then((f) => document.fonts.add(f)).catch(() => undefined);
+
+// voice lines (only if assets/voice/manifest.json exists)
+void Voice.load();
 
 const game = new Phaser.Game(config);
 (window as unknown as { __tipu: Phaser.Game }).__tipu = game;

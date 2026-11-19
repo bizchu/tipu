@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { Sound } from '../audio/Sound';
+import { Voice } from '../audio/Voice';
 
 /**
  * Settings panel (sound on/off, ambience volume, sound-effects volume) plus an
@@ -54,6 +55,8 @@ export function openSettings(): void {
         <div class="row"><input id="s-amb" type="range" min="0" max="100" value="${pct(Sound.volume('ambience'))}"><span class="v" id="s-amb-v">${pct(Sound.volume('ambience'))}%</span></div>
         <label for="s-sfx">Sound effects (clicks, seeds, rewind, TIPU!)</label>
         <div class="row"><input id="s-sfx" type="range" min="0" max="100" value="${pct(Sound.volume('sfx'))}"><span class="v" id="s-sfx-v">${pct(Sound.volume('sfx'))}%</span></div>
+        <label for="s-voice">Voices</label>
+        <div class="row"><input id="s-voice" type="range" min="0" max="100" value="${pct(Voice.volume)}"><span class="v" id="s-voice-v">${pct(Voice.volume)}%</span></div>
       </div>
       <h3>Controls</h3>
       <table>
@@ -80,6 +83,7 @@ export function openSettings(): void {
     (e.target as HTMLElement).textContent = `Sound: ${sound ? 'ON' : 'OFF'}`;
     q('#s-sliders').className = sound ? '' : 'dim';
     Sound.setEnabled(sound);
+    if (!sound) Voice.stop();
   });
   const amb = q<HTMLInputElement>('#s-amb');
   amb.addEventListener('input', () => {
@@ -92,6 +96,11 @@ export function openSettings(): void {
     q('#s-sfx-v').textContent = `${sfx.value}%`;
   });
   sfx.addEventListener('change', () => Sound.tick()); // a sample so you hear the new level
+  const voice = q<HTMLInputElement>('#s-voice');
+  voice.addEventListener('input', () => {
+    Voice.setVolume(Number(voice.value) / 100);
+    q('#s-voice-v').textContent = `${voice.value}%`;
+  });
 
   const close = () => {
     m.remove();

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import dialogue from '../data/dialogue.json';
 import { VhsFilter } from '../ui/VhsFilter';
 import { Sound } from '../audio/Sound';
+import { Voice } from '../audio/Voice';
 
 const GROUND = 820;
 
@@ -82,7 +83,7 @@ export default class Dawn extends Phaser.Scene {
       .setAlpha(0)
       .setShadow(0, 4, '#000000', 14, false, true);
     this.tweens.add({ targets: line, alpha: 1, y: 280, duration: 2000, ease: 'Sine.easeOut' });
-    await new Promise<void>((r) => this.time.delayedCall(5000, r));
+    await Promise.all([Voice.speak(dialogue.dawn), new Promise<void>((r) => this.time.delayedCall(5000, r))]);
     this.tweens.add({ targets: line, alpha: 0, y: 200, duration: 2000 });
     await new Promise<void>((r) => this.time.delayedCall(1200, r));
     this.scene.launch('Credits', { overlay: true });

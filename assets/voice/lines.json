@@ -1,0 +1,534 @@
+[
+  {
+    "id": "prologue_01",
+    "section": "prologue",
+    "speaker": "mahsuri",
+    "text": "...Where am I?",
+    "file": "prologue_01.m4a"
+  },
+  {
+    "id": "prologue_02",
+    "section": "prologue",
+    "speaker": "mahsuri",
+    "text": "What is this place?",
+    "file": "prologue_02.m4a"
+  },
+  {
+    "id": "prologue_03",
+    "section": "prologue",
+    "speaker": "mahsuri",
+    "text": "I can't remember anything... not even my name.",
+    "file": "prologue_03.m4a"
+  },
+  {
+    "id": "prologue_04",
+    "section": "prologue",
+    "speaker": "woman",
+    "text": "Ah... you're finally awake.",
+    "file": "prologue_04.m4a"
+  },
+  {
+    "id": "prologue_05",
+    "section": "prologue",
+    "speaker": "woman",
+    "text": "Don't look so frightened, sayang.",
+    "file": "prologue_05.m4a"
+  },
+  {
+    "id": "prologue_06",
+    "section": "prologue",
+    "speaker": "woman",
+    "text": "Play a game of congkak with me. Win, and I'll help you remember.",
+    "file": "prologue_06.m4a"
+  },
+  {
+    "id": "prologue_07",
+    "section": "prologue",
+    "speaker": "woman",
+    "text": "Go on. You go first.",
+    "file": "prologue_07.m4a"
+  },
+  {
+    "id": "memory1_01",
+    "section": "memory",
+    "speaker": "narrator",
+    "text": "An unknown couple, getting married...",
+    "file": "memory1_01.m4a"
+  },
+  {
+    "id": "memory1_02",
+    "section": "memory",
+    "speaker": "narrator",
+    "text": "Her husband is leaving... for war.",
+    "file": "memory1_02.m4a"
+  },
+  {
+    "id": "memory1_03",
+    "section": "memory",
+    "speaker": "narrator",
+    "text": "A travelling poet stays in the village. She is kind to him.",
+    "file": "memory1_03.m4a"
+  },
+  {
+    "id": "memory1_04",
+    "section": "memory",
+    "speaker": "narrator",
+    "text": "Whispers everywhere... they say she betrayed her husband.",
+    "file": "memory1_04.m4a"
+  },
+  {
+    "id": "memory2_01",
+    "section": "memory",
+    "speaker": "narrator",
+    "text": "Accused of adultery... and the chief wouldn't let her speak.",
+    "file": "memory2_01.m4a"
+  },
+  {
+    "id": "memory2_02",
+    "section": "memory",
+    "speaker": "narrator",
+    "text": "They tied her to that tree... to be put to death.",
+    "file": "memory2_02.m4a"
+  },
+  {
+    "id": "memory2_03",
+    "section": "memory",
+    "speaker": "narrator",
+    "text": "White... her blood was white. She was innocent.",
+    "file": "memory2_03.m4a"
+  },
+  {
+    "id": "reveal_01",
+    "section": "reveal",
+    "speaker": "mahsuri",
+    "text": "Those tears... are mine.",
+    "file": "reveal_01.m4a"
+  },
+  {
+    "id": "reveal_02",
+    "section": "reveal",
+    "speaker": "mahsuri",
+    "text": "...that was me.",
+    "file": "reveal_02.m4a"
+  },
+  {
+    "id": "reveal_03",
+    "section": "reveal",
+    "speaker": "mahsuri",
+    "text": "I am Mahsuri.",
+    "file": "reveal_03.m4a"
+  },
+  {
+    "id": "reveal_04",
+    "section": "reveal",
+    "speaker": "mahsuri",
+    "text": "They said I betrayed my husband... with that poet.",
+    "file": "reveal_04.m4a"
+  },
+  {
+    "id": "reveal_05",
+    "section": "reveal",
+    "speaker": "mahsuri",
+    "text": "I told them I was innocent. They would not listen.",
+    "file": "reveal_05.m4a"
+  },
+  {
+    "id": "reveal_06",
+    "section": "reveal",
+    "speaker": "mahsuri",
+    "text": "If I had sinned, let my blood run red.",
+    "file": "reveal_06.m4a"
+  },
+  {
+    "id": "reveal_07",
+    "section": "reveal",
+    "speaker": "mahsuri",
+    "text": "But if I am innocent... let it run white.",
+    "file": "reveal_07.m4a"
+  },
+  {
+    "id": "reveal_08",
+    "section": "reveal",
+    "speaker": "mahsuri",
+    "text": "And it ran white.",
+    "file": "reveal_08.m4a"
+  },
+  {
+    "id": "reveal_09",
+    "section": "reveal",
+    "speaker": "mahsuri",
+    "text": "For this injustice, Langkawi will know no peace...",
+    "file": "reveal_09.m4a"
+  },
+  {
+    "id": "reveal_10",
+    "section": "reveal",
+    "speaker": "mahsuri",
+    "text": "...for seven generations.",
+    "file": "reveal_10.m4a"
+  },
+  {
+    "id": "curse_siam_01",
+    "section": "curse",
+    "speaker": "mahsuri",
+    "text": "Not long after, the Siamese came across the sea.",
+    "file": "curse_siam_01.m4a"
+  },
+  {
+    "id": "curse_siam_02",
+    "section": "curse",
+    "speaker": "mahsuri",
+    "text": "Elephants. Cannons. Soldiers on our shores.",
+    "file": "curse_siam_02.m4a"
+  },
+  {
+    "id": "curse_rice_01",
+    "section": "curse",
+    "speaker": "mahsuri",
+    "text": "They burned their own rice so the enemy could not take it.",
+    "file": "curse_rice_01.m4a"
+  },
+  {
+    "id": "curse_rice_02",
+    "section": "curse",
+    "speaker": "mahsuri",
+    "text": "The fields smouldered for days.",
+    "file": "curse_rice_02.m4a"
+  },
+  {
+    "id": "curse_crops_01",
+    "section": "curse",
+    "speaker": "mahsuri",
+    "text": "After that, nothing would grow.",
+    "file": "curse_crops_01.m4a"
+  },
+  {
+    "id": "curse_crops_02",
+    "section": "curse",
+    "speaker": "mahsuri",
+    "text": "The crops withered. The wells ran dry.",
+    "file": "curse_crops_02.m4a"
+  },
+  {
+    "id": "curse_crops_03",
+    "section": "curse",
+    "speaker": "mahsuri",
+    "text": "Langkawi was cursed... for what they did to me.",
+    "file": "curse_crops_03.m4a"
+  },
+  {
+    "id": "curse_village_01",
+    "section": "curse",
+    "speaker": "mahsuri",
+    "text": "One by one, the families left.",
+    "file": "curse_village_01.m4a"
+  },
+  {
+    "id": "curse_village_02",
+    "section": "curse",
+    "speaker": "mahsuri",
+    "text": "Seven generations would pass before this island knew peace.",
+    "file": "curse_village_02.m4a"
+  },
+  {
+    "id": "curse_village_03",
+    "section": "curse",
+    "speaker": "mahsuri",
+    "text": "And I have waited here... all this time.",
+    "file": "curse_village_03.m4a"
+  },
+  {
+    "id": "curse_end",
+    "section": "curseEnd",
+    "speaker": "mahsuri",
+    "text": "...I remember everything now.",
+    "file": "curse_end.m4a"
+  },
+  {
+    "id": "dawn",
+    "section": "dawn",
+    "speaker": "mahsuri",
+    "text": "The sun is rising... I can finally rest.",
+    "file": "dawn.m4a"
+  },
+  {
+    "id": "deadstare_02",
+    "section": "deadStare",
+    "speaker": "chief",
+    "text": "You should not have come back.",
+    "file": "deadstare_02.m4a"
+  },
+  {
+    "id": "deadstare_03",
+    "section": "deadStare",
+    "speaker": "chief",
+    "text": "The court has already judged you.",
+    "file": "deadstare_03.m4a"
+  },
+  {
+    "id": "deadstare_04",
+    "section": "deadStare",
+    "speaker": "mahsuri",
+    "text": "...Judged me? For what?",
+    "file": "deadstare_04.m4a"
+  },
+  {
+    "id": "board_wan_start_01",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Go on, sayang. You go first.",
+    "file": "board_wan_start_01.m4a"
+  },
+  {
+    "id": "board_wan_myTurn_01",
+    "section": "board",
+    "speaker": "woman",
+    "text": "My turn, sayang...",
+    "file": "board_wan_myTurn_01.m4a"
+  },
+  {
+    "id": "board_wan_myTurn_02",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Watch closely now.",
+    "file": "board_wan_myTurn_02.m4a"
+  },
+  {
+    "id": "board_wan_myTurn_03",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Hmm... let me see.",
+    "file": "board_wan_myTurn_03.m4a"
+  },
+  {
+    "id": "board_wan_extra_01",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Again? How lucky for me.",
+    "file": "board_wan_extra_01.m4a"
+  },
+  {
+    "id": "board_wan_extra_02",
+    "section": "board",
+    "speaker": "woman",
+    "text": "One more, sayang.",
+    "file": "board_wan_extra_02.m4a"
+  },
+  {
+    "id": "board_wan_captured_01",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Tch... you took those?",
+    "file": "board_wan_captured_01.m4a"
+  },
+  {
+    "id": "board_wan_captured_02",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Cheeky girl.",
+    "file": "board_wan_captured_02.m4a"
+  },
+  {
+    "id": "board_wan_capturing_01",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Mine now, sayang.",
+    "file": "board_wan_capturing_01.m4a"
+  },
+  {
+    "id": "board_wan_capturing_02",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Did you see that coming?",
+    "file": "board_wan_capturing_02.m4a"
+  },
+  {
+    "id": "board_wan_caught_01",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Tch... clever girl.",
+    "file": "board_wan_caught_01.m4a"
+  },
+  {
+    "id": "board_wan_caught_02",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Such sharp eyes, sayang.",
+    "file": "board_wan_caught_02.m4a"
+  },
+  {
+    "id": "board_wan_caught_03",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Hmph. Lucky guess.",
+    "file": "board_wan_caught_03.m4a"
+  },
+  {
+    "id": "board_wan_clean_01",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Accusing me? How rude, sayang.",
+    "file": "board_wan_clean_01.m4a"
+  },
+  {
+    "id": "board_wan_clean_02",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Nothing there, sayang.",
+    "file": "board_wan_clean_02.m4a"
+  },
+  {
+    "id": "board_wan_intro",
+    "section": "board",
+    "speaker": "woman",
+    "text": "You don't even remember me? Tsk. I'm Wan Mahora, sayang... the village chief's wife.",
+    "file": "board_wan_intro.m4a"
+  },
+  {
+    "id": "board_chief_start_01",
+    "section": "board",
+    "speaker": "chief",
+    "text": "Sit. The game begins. You move first.",
+    "file": "board_chief_start_01.m4a"
+  },
+  {
+    "id": "board_chief_myTurn_01",
+    "section": "board",
+    "speaker": "chief",
+    "text": "My move.",
+    "file": "board_chief_myTurn_01.m4a"
+  },
+  {
+    "id": "board_chief_myTurn_02",
+    "section": "board",
+    "speaker": "chief",
+    "text": "Observe.",
+    "file": "board_chief_myTurn_02.m4a"
+  },
+  {
+    "id": "board_chief_myTurn_03",
+    "section": "board",
+    "speaker": "chief",
+    "text": "The court proceeds.",
+    "file": "board_chief_myTurn_03.m4a"
+  },
+  {
+    "id": "board_chief_extra_01",
+    "section": "board",
+    "speaker": "chief",
+    "text": "Again.",
+    "file": "board_chief_extra_01.m4a"
+  },
+  {
+    "id": "board_chief_extra_02",
+    "section": "board",
+    "speaker": "chief",
+    "text": "The law favours me.",
+    "file": "board_chief_extra_02.m4a"
+  },
+  {
+    "id": "board_chief_captured_01",
+    "section": "board",
+    "speaker": "chief",
+    "text": "...Noted.",
+    "file": "board_chief_captured_01.m4a"
+  },
+  {
+    "id": "board_chief_captured_02",
+    "section": "board",
+    "speaker": "chief",
+    "text": "You overstep.",
+    "file": "board_chief_captured_02.m4a"
+  },
+  {
+    "id": "board_chief_capturing_01",
+    "section": "board",
+    "speaker": "chief",
+    "text": "Confiscated.",
+    "file": "board_chief_capturing_01.m4a"
+  },
+  {
+    "id": "board_chief_capturing_02",
+    "section": "board",
+    "speaker": "chief",
+    "text": "As the court has judged.",
+    "file": "board_chief_capturing_02.m4a"
+  },
+  {
+    "id": "board_chief_caught_01",
+    "section": "board",
+    "speaker": "chief",
+    "text": "You dare accuse me?",
+    "file": "board_chief_caught_01.m4a"
+  },
+  {
+    "id": "board_chief_caught_02",
+    "section": "board",
+    "speaker": "chief",
+    "text": "...Very well. Continue.",
+    "file": "board_chief_caught_02.m4a"
+  },
+  {
+    "id": "board_chief_caught_03",
+    "section": "board",
+    "speaker": "chief",
+    "text": "Impertinent.",
+    "file": "board_chief_caught_03.m4a"
+  },
+  {
+    "id": "board_chief_clean_01",
+    "section": "board",
+    "speaker": "chief",
+    "text": "Baseless accusations.",
+    "file": "board_chief_clean_01.m4a"
+  },
+  {
+    "id": "board_chief_clean_02",
+    "section": "board",
+    "speaker": "chief",
+    "text": "The court finds nothing.",
+    "file": "board_chief_clean_02.m4a"
+  },
+  {
+    "id": "board_chief_intro",
+    "section": "board",
+    "speaker": "chief",
+    "text": "You have forgotten your own chief? I rule this village. Wan Mahora is my wife.",
+    "file": "board_chief_intro.m4a"
+  },
+  {
+    "id": "board_wan_lose_01",
+    "section": "board",
+    "speaker": "woman",
+    "text": "...You won?",
+    "file": "board_wan_lose_01.m4a"
+  },
+  {
+    "id": "board_wan_lose_02",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Hah! Don't look so pleased, sayang.",
+    "file": "board_wan_lose_02.m4a"
+  },
+  {
+    "id": "board_wan_lose_03",
+    "section": "board",
+    "speaker": "woman",
+    "text": "How very clever of you.",
+    "file": null
+  },
+  {
+    "id": "board_wan_lose_04",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Very well, then.",
+    "file": null
+  },
+  {
+    "id": "board_wan_lose_final",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Fine. I'll show you.",
+    "file": "board_wan_lose_final.m4a"
+  }
+]

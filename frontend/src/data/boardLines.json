@@ -1,0 +1,75 @@
+{
+  "lines": {
+    "wan_mahora": {
+      "start": "Go on, sayang. You go first.",
+      "myTurn": [
+        "My turn, sayang...",
+        "Watch closely now.",
+        "Hmm... let me see."
+      ],
+      "extra": [
+        "Again? How lucky for me.",
+        "One more, sayang."
+      ],
+      "captured": [
+        "Tch... you took those?",
+        "Cheeky girl."
+      ],
+      "capturing": [
+        "Mine now, sayang.",
+        "Did you see that coming?"
+      ],
+      "caught": [
+        "Tch... clever girl.",
+        "Such sharp eyes, sayang.",
+        "Hmph. Lucky guess."
+      ],
+      "clean": [
+        "Accusing me? How rude, sayang.",
+        "Nothing there, sayang."
+      ]
+    },
+    "village_chief": {
+      "start": "Sit. The game begins. You move first.",
+      "myTurn": [
+        "My move.",
+        "Observe.",
+        "The court proceeds."
+      ],
+      "extra": [
+        "Again.",
+        "The law favours me."
+      ],
+      "captured": [
+        "...Noted.",
+        "You overstep."
+      ],
+      "capturing": [
+        "Confiscated.",
+        "As the court has judged."
+      ],
+      "caught": [
+        "You dare accuse me?",
+        "...Very well. Continue.",
+        "Impertinent."
+      ],
+      "clean": [
+        "Baseless accusations.",
+        "The court finds nothing."
+      ]
+    }
+  },
+  "intro": {
+    "wan_mahora": "You don't even remember me? Tsk. I'm Wan Mahora, sayang... the village chief's wife.",
+    "village_chief": "You have forgotten your own chief? I rule this village. Wan Mahora is my wife."
+  },
+  "wanMahoraLoses": {
+    "lines": [
+      "You WON?!",
+      "Hah! Don't look so pleased, sayang.",
+      "How very clever of you.",
+      "Very well, then."
+    ],
+    "final": "Fine. I'll show you."
+  }
+}

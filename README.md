@@ -39,8 +39,19 @@ npm test         # 45 unit + property tests (Vitest + fast-check)
 npm run build
 ```
 
+### Voice lines
+Story and opponent lines are voiced with Gemini TTS (`gemini-3.1-flash-tts-preview`) through the Gemini API; the narrator is a human recording. The clips are already in `assets/voice/`; to remake them:
+```bash
+cd frontend
+echo "GEMINI_API_KEY=your-key" >> .env       # Gemini API key (aistudio.google.com/apikey); .env is git-ignored
+npm run voices -- --dry                       # list every line and who says it
+npm run voices                                # make missing or changed lines only
+npm run voices -- --only=chief                # just one character (mahsuri, woman, chief, narrator)
+```
+Voices and style prompts per character are in `frontend/scripts/voices.config.json`; change one and re-run to remake just those lines. A recording of your own named after a line's id (see `assets/voice/lines.json`, e.g. `memory1_01.m4a`) replaces the generated clip and is never overwritten. Live Gemini taunts aren't voiced.
+
 ## Built with
-Kiro (steering, specs, hooks) · Phaser 3 · Three.js · Vite · TypeScript · Vitest + fast-check · Netlify Functions · Google Gemini API
+Kiro (steering, specs, hooks) · Phaser 3 · Three.js · Vite · TypeScript · Vitest + fast-check · Netlify Functions · Google Gemini API · Google Cloud Text-to-Speech
 
 ## How Kiro was used
 - **Steering** (`.kiro/steering/`): product, tech, structure, gameplay rules, the Mahsuri legend, character voices, visual style and the full script. Every spec and task builds on these.

@@ -34,6 +34,8 @@ import { REPLAY_ASSETS, ReplayMove, playReplay } from '../ui/Replay';
 import { Sound } from '../audio/Sound';
 import { getLine } from '../ai/getLine';
 import { VhsFilter } from '../ui/VhsFilter';
+import { Voice } from '../audio/Voice';
+import boardLines from '../data/boardLines.json';
 
 export * from './boardScene.helpers';
 
@@ -70,27 +72,8 @@ const NAMES: Record<ResolvedConfig['opponent'], string> = {
   village_chief: 'Village Chief',
 };
 
-/** Short scripted reactions (the AI taunt hook can replace these later). */
-const LINES = {
-  wan_mahora: {
-    start: 'Go on, sayang. You go first.',
-    myTurn: ['My turn, sayang...', 'Watch closely now.', 'Hmm... let me see.'],
-    extra: ['Again? How lucky for me.', 'One more, sayang.'],
-    captured: ['Tch... you took those?', 'Cheeky girl.'],
-    capturing: ['Mine now, sayang.', 'Did you see that coming?'],
-    caught: ['Tch... clever girl.', 'Such sharp eyes, sayang.', 'Hmph. Lucky guess.'],
-    clean: ['Accusing me? How rude, sayang.', 'Nothing there, sayang.'],
-  },
-  village_chief: {
-    start: 'Sit. The game begins. You move first.',
-    myTurn: ['My move.', 'Observe.', 'The court proceeds.'],
-    extra: ['Again.', 'The law favours me.'],
-    captured: ['...Noted.', 'You overstep.'],
-    capturing: ['Confiscated.', 'As judged.'],
-    caught: ['You dare accuse me?', '...Very well. Continue.', 'Impertinent.'],
-    clean: ['Baseless accusations.', 'The court finds nothing.'],
-  },
-} as const;
+/** Short scripted reactions (the AI taunt hook can replace these). Text lives in data/boardLines.json so the voice generator can read it. */
+const LINES = boardLines.lines;
 
 /** What the name tag says before they introduce themselves (Mahsuri has lost her memory). */
 const UNKNOWN: Record<ResolvedConfig['opponent'], string> = {
@@ -99,10 +82,7 @@ const UNKNOWN: Record<ResolvedConfig['opponent'], string> = {
 };
 
 /** Said on their first turn; after this the name tag shows their real name. */
-const INTRO: Record<ResolvedConfig['opponent'], string> = {
-  wan_mahora: "You don't even remember me? Tsk. I'm Wan Mahora, sayang... the village chief's wife.",
-  village_chief: 'You have forgotten your own chief? I rule this village. Wan Mahora is my wife.',
-};
+const INTRO: Record<ResolvedConfig['opponent'], string> = boardLines.intro;
 
 const SEED_SIZE = 40;
 const ARC = 70;
@@ -182,6 +162,12 @@ export default class BoardScene extends Phaser.Scene {
   // --------------------------------------------------------------------------
 
   create(data: unknown): void {
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      Voice.stop();
+      Sound.stopMusic(2);
+    });
+    // battle music under the round (only if assets/audio/battle.mp3 exists)
+    Sound.music('battle', { vol: 0.4, fade: 3, loop: true });
     this.resolvedConfig = parseRoundConfig(data);
     const { background, opponent, seedsPerHole } = this.resolvedConfig;
     this.glowOverlays = [];
@@ -578,7 +564,7 @@ export default class BoardScene extends Phaser.Scene {
 
   /** horror music under the round: louder in round 2, as the opponent gets angrier and as the tape wears out */
   private updateIntensity(): void {
-    const base = this.resolvedConfig.round === 2 ? 0.35 : 0.15;
+    const base = this.resolvedConfig.round === 2 ? 0.5 : 0.3;
     Sound.setIntensity(base + this.angerLevel * 0.12 + (1 - this.health) * 0.35);
   }
 
@@ -664,22 +650,15 @@ export default class BoardScene extends Phaser.Scene {
     this.cameras.main.shake(260, 0.006);
     Sound.glitch();
     this.tweens.add({ targets: p, scale: p.scale * 1.06, yoyo: true, duration: 140 });
-    const lines = [
-      '...You won?',
-      "Hah! Don't look so pleased, sayang.",
-      'A village girl, playing at being clever.',
-      'You want to remember so badly?',
-    ];
-    for (const l of lines) {
-      this.say(name, l);
-      await this.delay(2400);
+    for (const l of boardLines.wanMahoraLoses.lines) {
+      // wait for the voice line too, so it isn't cut off
+      await Promise.all([this.say(name, l), this.delay(2400)]);
     }
     // she leans in close for the last line
     Sound.heartbeatBurst(5);
     Sound.setIntensity(0.6);
     this.tweens.add({ targets: p, scale: p.scale * 1.12, y: baseY + 30, duration: 900, ease: 'Sine.easeInOut' });
-    this.say(name, "Fine. I'll show you.");
-    await this.delay(2600);
+    await Promise.all([this.say(name, boardLines.wanMahoraLoses.final), this.delay(2600)]);
     const flash = this.add.rectangle(960, 540, 1920, 1080, 0xffffff, 0).setDepth(90);
     Sound.glitch();
     await new Promise<void>((r) => this.tweens.add({ targets: flash, fillAlpha: 0.85, yoyo: true, duration: 180, onComplete: () => r() }));
@@ -964,11 +943,13 @@ export default class BoardScene extends Phaser.Scene {
     return this.registry.get(`introduced_${round}`) ? NAMES[opponent] : UNKNOWN[opponent];
   }
 
-  private say(name: string, text: string): void {
+  /** Shows a line in the dialogue box and speaks it if it has a voice clip. Resolves when the voice finishes. */
+  private say(name: string, text: string): Promise<void> {
     this.dialogueName.setText(name);
     const size = name.length > 10 ? 22 : 26;
     this.dialogueName.setFontSize(size);
     this.dialogueText.setText(text);
+    return Voice.speak(text, { interrupt: false }); // board lines don't cut each other off
   }
 }
 

@@ -1,0 +1,48 @@
+{
+  "provider": "gemini",
+  "model": "gemini-3.1-flash-tts-preview",
+  "characters": {
+    "mahsuri": {
+      "voice": "Zephyr",
+      "languageCode": "en-US",
+      "style": "Young Malay woman with a slight Malaysian accent. Quiet and haunted.",
+      "sectionStyles": {
+        "prologue": "Young Malay woman, frightened and confused, voice trembling and quiet, close to tears. Slight Malaysian accent.",
+        "deadStare": "Young Malay woman, frightened and confused, voice trembling and quiet. Slight Malaysian accent.",
+        "reveal": "Young Malay woman, calm, sorrowful and dignified, speaking slowly with quiet strength, like a final vow. Slight Malaysian accent.",
+        "curse": "Young Malay woman remembering something terrible, slow, sorrowful and haunting, almost a whisper. Slight Malaysian accent.",
+        "curseEnd": "Young Malay woman, quiet realisation, sorrowful but calm. Slight Malaysian accent.",
+        "dawn": "Young Malay woman, peaceful and relieved at last, soft and gentle, almost smiling. Slight Malaysian accent."
+      },
+      "fallbackStyle": "Speak slowly and quietly, sad and reflective, like telling an old story. Slight Malaysian accent."
+    },
+    "woman": {
+      "voice": "Pulcherrima",
+      "languageCode": "en-US",
+      "style": "Speak in a sweet, teasing voice with a hint of coldness, like a sly older woman toying with someone. Clear and confident, at a normal speaking volume, NOT whispering. Slight Malaysian accent.",
+      "fallbackStyle": "Speak slowly and softly in a sweet, teasing voice with a hint of coldness, like a sly older woman. Slight Malaysian accent."
+    },
+    "chief": {
+      "voice": "Enceladus",
+      "languageCode": "ms-MY",
+      "style": "Very deep, old Malay village elder. Cold and stern, like passing a death sentence. Low and gravelly, slight Malaysian accent.",
+      "fallbackStyle": "Deep, slow, stern older man's voice. Slight Malaysian accent."
+    },
+    "narrator": {
+      "voice": "Zephyr",
+      "languageCode": "en-US",
+      "style": "Soft, hushed storyteller, like recalling a half-forgotten memory. Slow and haunting, almost a whisper. Slight Malaysian accent.",
+      "fallbackStyle": "Soft, slow storyteller voice. Slight Malaysian accent."
+    }
+  },
+  "keep": [
+    "prologue_06"
+  ],
+  "lineStyles": {
+    "board_wan_lose_01": "Older woman SHOUTING in shock and fury, loud and sharp, outraged that she has lost. The sweetness is completely gone. Slight Malaysian accent.",
+    "board_wan_lose_02": "Older woman, still furious, loud and bitter, spitting the words. Slight Malaysian accent.",
+    "board_wan_lose_03": "Older woman, furious and sarcastic, loud and sharp. Slight Malaysian accent.",
+    "board_wan_lose_04": "Older woman, angry and contemptuous, voice raised, sneering. Slight Malaysian accent.",
+    "board_wan_lose_final": "Older woman, cold fury, low and threatening, every word slow and deliberate. Slight Malaysian accent."
+  }
+}

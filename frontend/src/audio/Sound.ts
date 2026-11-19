@@ -9,7 +9,7 @@
  * tape damage, flicker buzz, page turn.
  */
 type Layer = 'crickets' | 'hum' | 'heartbeat' | 'tension';
-type Sample = 'night' | 'tension' | 'title' | 'ending' | 'button';
+type Sample = 'night' | 'tension' | 'title' | 'ending' | 'button' | 'battle' | 'story';
 /** Music and ambience recordings (all from Pixabay, see CREDITS.md). Loops were pre-crossfaded so they repeat smoothly. */
 const SAMPLE_FILES: Record<Sample, string> = {
   night: 'audio/night.mp3',
@@ -17,6 +17,10 @@ const SAMPLE_FILES: Record<Sample, string> = {
   title: 'audio/title.mp3',
   ending: 'audio/ending.mp3',
   button: 'audio/button.mp3',
+  /** optional: looped under the congkak rounds. Drop a file at assets/audio/battle.mp3 to turn it on. */
+  battle: 'audio/battle.mp3',
+  /** optional: Mahsuri's story (the reveal, then the curse photos). Drop a file at assets/audio/story.mp3. */
+  story: 'audio/story.mp3',
 };
 /** layers that are driven by a recording, restarted once their file finishes loading */
 const LAYER_SAMPLE: Partial<Record<Layer, Sample>> = { crickets: 'night', tension: 'tension' };
@@ -133,9 +137,11 @@ class SoundEngine {
   // ---------------------------------------------------------------- music (title + ending)
   private musicStop: ((fade: number) => void) | null = null;
   private wantedMusic: { k: Sample; opts: { vol: number; fade: number; loop: boolean } } | null = null;
+  private playingMusic: Sample | null = null;
 
   /** Fades a music track in (on the background bus). If audio isn't ready yet it starts as soon as it is. */
   music(k: Sample, opts: { vol: number; fade: number; loop: boolean }): void {
+    if (this.playingMusic === k && this.musicStop) return; // already playing (e.g. carrying on into the next scene)
     this.wantedMusic = { k, opts };
     const buf = this.samples.get(k);
     if (!buf || !this.ctx || !this.amb) return;
@@ -167,9 +173,13 @@ class SoundEngine {
           /* already stopped */
         }
       }, fade * 1000 + 100);
-      if (this.musicStop === stop) this.musicStop = null;
+      if (this.musicStop === stop) {
+        this.musicStop = null;
+        this.playingMusic = null;
+      }
     };
     this.musicStop = stop;
+    this.playingMusic = k;
   }
 
   /** Fade the current music out over `fade` seconds. */
@@ -187,7 +197,7 @@ class SoundEngine {
    */
   setIntensity(x: number): void {
     if (!this.ctx) return;
-    const v = Math.max(0, Math.min(1, x)) * 0.75;
+    const v = Math.max(0, Math.min(1, x)) * 0.95;
     let layer = this.layers.get('tension');
     if (!layer && v > 0) layer = this.startLayer('tension');
     layer?.gain.gain.setTargetAtTime(v, this.ctx.currentTime, 2.5);
