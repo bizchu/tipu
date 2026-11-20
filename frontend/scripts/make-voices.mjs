@@ -95,7 +95,9 @@ function settingsFor(l, styleOverride) {
   const style = styleOverride ?? config.lineStyles?.[l.id] ?? c.sectionStyles?.[l.section] ?? c.style ?? '';
   return { model: c.model ?? config.model, voice: c.voice, languageCode: config.lineLanguages?.[l.id] ?? c.languageCode, style };
 }
-const hashOf = (l) => createHash('sha1').update(JSON.stringify([l.text, settingsFor(l)])).digest('hex').slice(0, 12);
+/** what the voice actually reads (e.g. spelt the way it's pronounced); the screen still shows l.text */
+const spoken = (l) => config.lineSpeech?.[l.id] ?? l.text;
+const hashOf = (l) => createHash('sha1').update(JSON.stringify([spoken(l), settingsFor(l)])).digest('hex').slice(0, 12);
 const existing = (id) => EXTS.map((e) => `${id}.${e}`).find((f) => existsSync(join(OUT, f)));
 
 // --chirp: use Cloud Text-to-Speech Chirp 3 HD voices instead (same voice names, no daily cap, but ignores style prompts)
@@ -155,7 +157,7 @@ let geminiLang = true; // dropped if the Gemini API rejects languageCode
 async function synth(l, key, styleOverride) {
   const s = settingsFor(l, styleOverride);
   if (PROVIDER === 'gemini') {
-    const prompt = s.style ? `### DIRECTOR'S NOTES\n${s.style}\n\n### TRANSCRIPT\n${l.text}` : l.text;
+    const prompt = s.style ? `### DIRECTOR'S NOTES\n${s.style}\n\n### TRANSCRIPT\n${spoken(l)}` : spoken(l);
     const speechConfig = { voiceConfig: { prebuiltVoiceConfig: { voiceName: s.voice } } };
     if (geminiLang && s.languageCode) speechConfig.languageCode = s.languageCode;
     let data;
@@ -181,12 +183,12 @@ async function synth(l, key, styleOverride) {
   }
   const body = CHIRP
     ? {
-        input: { text: l.text },
+        input: { text: spoken(l) },
         voice: { languageCode: s.languageCode, name: `${s.languageCode}-Chirp3-HD-${s.voice}` },
         audioConfig: { audioEncoding: 'MP3' },
       }
     : {
-        input: s.style ? { prompt: s.style, text: l.text } : { text: l.text },
+        input: s.style ? { prompt: s.style, text: spoken(l) } : { text: spoken(l) },
         voice: { languageCode: s.languageCode, name: s.voice, modelName: s.model },
         audioConfig: { audioEncoding: 'MP3' },
       };

@@ -489,7 +489,7 @@ export default class BoardScene extends Phaser.Scene {
     Sound.whirr(1.1);
     const result = await playReplay(this, turn, {
       background,
-      slow: round === 1 ? 3 : 2,
+      slow: round === 1 ? 4 : 3, // replay speed ×¼ / ×⅓
       onWrongTap: () => {
         this.failStreak++;
         this.hurtTape(TAPE.wrongTap);

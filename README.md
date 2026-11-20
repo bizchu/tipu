@@ -9,7 +9,7 @@ A ~4-minute browser horror game for **Kiroween 2026** (category: Resurrection). 
 ## How to play
 1. Pick one of your glowing holes; seeds are sown anticlockwise. Land in your house for another turn; land in an empty hole on your side to capture (*tembak*).
 2. Your opponent cheats under cover of a flickering lamp. If the numbers look wrong, press **◀◀ REW** (or **R**).
-3. Watch the slow-motion replay and **tap the moment they cheat**. A red **TIPU!** stamp undoes it.
+3. Watch the slow-motion replay and **tap the cheating hand** (or the hole it cheats at) the moment it happens. A red **TIPU!** stamp undoes it.
 4. Wrong taps and empty rewinds damage the tape. If it snaps, the round rewinds. There is no game over.
 5. Win both rounds to remember who you are.
 
@@ -51,7 +51,7 @@ npm run voices -- --only=chief                # just one character (mahsuri, wom
 Voices and style prompts per character are in `frontend/scripts/voices.config.json`; change one and re-run to remake just those lines. A recording of your own named after a line's id (see `assets/voice/lines.json`, e.g. `memory1_01.m4a`) replaces the generated clip and is never overwritten. Live Gemini taunts aren't voiced.
 
 ## Built with
-Kiro (steering, specs, hooks) · Phaser 3 · Three.js · Vite · TypeScript · Vitest + fast-check · Netlify Functions · Google Gemini API · Google Cloud Text-to-Speech
+Kiro (steering, specs, hooks) · Phaser 3 · Three.js · Vite · TypeScript · Vitest + fast-check · Netlify Functions · Google Gemini API · Gemini TTS
 
 ## How Kiro was used
 - **Steering** (`.kiro/steering/`): product, tech, structure, gameplay rules, the Mahsuri legend, character voices, visual style and the full script. Every spec and task builds on these.

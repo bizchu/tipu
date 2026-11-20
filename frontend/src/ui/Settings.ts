@@ -63,7 +63,7 @@ export function openSettings(): void {
         <tr><td>Continue story</td><td>Tap / click, or Space / Enter</td></tr>
         <tr><td>Play a hole</td><td>Tap / click one of your 3 holes</td></tr>
         <tr><td>Rewind the tape</td><td>◀◀ REW (top-right) or R</td></tr>
-        <tr><td>Catch the cheat</td><td>Tap the board the moment something looks wrong in the replay</td></tr>
+        <tr><td>Catch the cheat</td><td>Tap the cheating hand (or the hole it's cheating at) the moment you see it in the replay</td></tr>
         <tr><td>Speed up moves</td><td>Hold Space during a round</td></tr>
         <tr><td>How to play</td><td>? button (bottom-left)</td></tr>
         <tr><td>Settings</td><td>⚙ button (top-left) or Esc</td></tr>

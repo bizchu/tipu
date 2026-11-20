@@ -45,7 +45,10 @@ export async function playReplay(
 ): Promise<ReplayResult> {
   const D = 200;
   const layer = scene.add.container(0, 0).setDepth(D);
-  const wait = (ms: number) => new Promise<void>((r) => scene.time.delayedCall(ms, r));
+  let caught = false;
+  /** slow-motion factor; once you've caught the cheat the rest of the replay is skipped through quickly */
+  const slow = () => (caught ? 0.3 : opts.slow);
+  const wait = (ms: number) => new Promise<void>((r) => scene.time.delayedCall(caught ? ms * 0.15 : ms, r));
 
   // ---- VHS rewind transition ----
   const tear = scene.add.graphics().setDepth(D + 50);
@@ -92,7 +95,7 @@ export async function playReplay(
   const dark = scene.add.rectangle(960, 540, 1920, 1080, 0x000000, 0);
   layer.add(dark);
 
-  rew.setText(`◀◀ REWIND  ×${opts.slow === 3 ? '⅓' : '½'}`);
+  rew.setText(`◀◀ REWIND  ×${({ 2: '½', 3: '⅓', 4: '¼' } as Record<number, string>)[opts.slow] ?? '1/' + opts.slow}`);
   // Big instruction card first, then a bold banner that stays on screen
   const card = scene.add.container(960, 540);
   const cardBg = scene.add.rectangle(0, 0, 1500, 330, 0x140608, 0.94).setStrokeStyle(6, 0xd8262b);
@@ -100,7 +103,7 @@ export async function playReplay(
     .text(0, -70, 'WATCH CLOSELY...', { fontFamily: 'Courier New, monospace', fontSize: '64px', color: '#ff4a3a', fontStyle: 'bold' })
     .setOrigin(0.5);
   const cardBody = scene.add
-    .text(0, 40, 'TAP the moment you see something suspicious!', {
+    .text(0, 40, 'TAP the hand the moment you see it cheat!', {
       fontFamily: 'Georgia, serif',
       fontSize: '56px',
       color: '#f6e2b4',
@@ -119,7 +122,7 @@ export async function playReplay(
   const banner = scene.add.container(960, 1000);
   const bannerBg = scene.add.rectangle(0, 0, 1240, 100, 0x140608, 0.92).setStrokeStyle(4, 0xd8262b);
   const bannerText = scene.add
-    .text(0, 0, 'TAP when you see something suspicious!', {
+    .text(0, 0, 'TAP the hand when you see it cheat!', {
       fontFamily: 'Georgia, serif',
       fontSize: '46px',
       color: '#f6e2b4',
@@ -134,14 +137,18 @@ export async function playReplay(
   // ---- tap handling ----
   let windowOpen = false;
   let region = { x: 0, y: 0, r: 0 };
-  let caught = false;
   let lastWrong = 0;
+  let stampShown: Promise<void> | null = null;
   const hit = scene.add.zone(960, 540, 1920, 1080).setInteractive();
   layer.add(hit);
   hit.on('pointerdown', (p: Phaser.Input.Pointer) => {
     if (caught) return;
-    if (windowOpen && hitTest(p.worldX, p.worldY, region.x, region.y, region.r)) {
+    // catching the cheating hand counts as much as tapping the hole it's cheating at
+    const onHand = hand.visible && hand.getBounds().contains(p.worldX, p.worldY);
+    if (windowOpen && (onHand || hitTest(p.worldX, p.worldY, region.x, region.y, region.r))) {
       caught = true;
+      hand.setVisible(false); // he's frozen: stamp lands right away
+      stampShown = showStamp();
       return;
     }
     if (scene.time.now - lastWrong > 600) {
@@ -152,8 +159,9 @@ export async function playReplay(
     }
   });
 
-  const SOW = 230 * opts.slow;
-  const arc = (seedKey: string, from: { x: number; y: number }, to: { x: number; y: number }, ms = SOW) => {
+  const sow = () => 230 * slow();
+  const arc = (seedKey: string, from: { x: number; y: number }, to: { x: number; y: number }, ms = sow()) => {
+    if (caught) return Promise.resolve();
     const s = scene.add.image(from.x, from.y, seedKey).setDisplaySize(48, 48);
     layer.add(s);
     layer.bringToTop(hand);
@@ -180,10 +188,10 @@ export async function playReplay(
     );
   };
   const openWindow = (x: number, y: number, ms: number) => {
-    region = { x, y, r: 150 };
+    region = { x, y, r: 185 };
     windowOpen = true;
-    prompt.setText('NOW! Tap it!').setColor('#ff4a3a');
-    scene.time.delayedCall(ms, () => prompt.setText('TAP when you see something suspicious!').setColor('#f6e2b4'));
+    prompt.setText('NOW! Tap the hand!').setColor('#ff4a3a');
+    scene.time.delayedCall(ms, () => prompt.setText('TAP the hand when you see it cheat!').setColor('#f6e2b4'));
     const showHint = typeof opts.hint === 'function' ? opts.hint() : opts.hint;
     if (showHint) {
       const ring = scene.add.circle(x, y, 120).setStrokeStyle(8, 0xff3a2a).setFillStyle(0xff3a2a, 0.12);
@@ -206,12 +214,12 @@ export async function playReplay(
     counts[m.hole] = 0;
     drawHole(m.hole);
     hand.setPosition(POS[m.hole].x, -200).setTexture('hand_open_down');
-    await new Promise<void>((r) => scene.tweens.add({ targets: hand, y: POS[m.hole].y, duration: 260 * opts.slow, onComplete: () => r() }));
+    await new Promise<void>((r) => scene.tweens.add({ targets: hand, y: POS[m.hole].y, duration: 260 * slow(), onComplete: () => r() }));
 
     for (let i = 0; i < m.move.steps.length && !caught; i++) {
       const st = m.move.steps[i];
       if (st.type === 'keepSowing') {
-        await wait(180 * opts.slow);
+        await wait(180 * slow());
         counts[st.fromHole] = 0;
         drawHole(st.fromHole);
         prev = st.fromHole;
@@ -227,7 +235,7 @@ export async function playReplay(
       if (cheat && cheat.stepIndex === i && cheat.type === 'skipHole') {
         // the hand travels over YOUR hole and keeps the seed
         hadCheat = true;
-        openWindow(POS[st.toHole].x, POS[st.toHole].y, SOW * 3 + 900);
+        openWindow(POS[st.toHole].x, POS[st.toHole].y, sow() * 3 + 1500);
         await arcKeep(POS[from], POS[st.toHole]);
         prev = st.toHole;
         continue;
@@ -240,8 +248,8 @@ export async function playReplay(
 
       if (cheat && cheat.stepIndex === i && cheat.type === 'extraSeed') {
         hadCheat = true;
-        openWindow(POS[st.toHole].x, POS[st.toHole].y, SOW * 3 + 900);
-        await arc('seed_red', SLEEVE, POS[st.toHole], SOW * 1.4);
+        openWindow(POS[st.toHole].x, POS[st.toHole].y, sow() * 3 + 1500);
+        await arc('seed_red', SLEEVE, POS[st.toHole], sow() * 1.4);
         counts[st.toHole]++;
         drawHole(st.toHole);
       }
@@ -250,27 +258,27 @@ export async function playReplay(
     if (cheat && cheat.stepIndex < 0 && !caught) {
       hadCheat = true;
       if (cheat.type === 'lightsOut') {
-        await new Promise<void>((r) => scene.tweens.add({ targets: dark, fillAlpha: 0.78, duration: 300 * opts.slow, onComplete: () => r() }));
-        openWindow(POS[cheat.hole].x, POS[cheat.hole].y, 1400 * opts.slow + 800);
+        await new Promise<void>((r) => scene.tweens.add({ targets: dark, fillAlpha: 0.78, duration: 300 * slow(), onComplete: () => r() }));
+        openWindow(POS[cheat.hole].x, POS[cheat.hole].y, 1400 * slow() + 1400);
         const a = cheat.hole;
         const b = cheat.otherHole!;
-        await arc('seed_white', POS[a], POS[b], SOW * 1.6);
-        await arc('seed_white', POS[b], POS[a], SOW * 1.6);
+        await arc('seed_white', POS[a], POS[b], sow() * 1.6);
+        await arc('seed_white', POS[b], POS[a], sow() * 1.6);
         [counts[a], counts[b]] = [counts[b], counts[a]];
         drawHole(a);
         drawHole(b);
         layer.bringToTop(dark);
-        await new Promise<void>((r) => scene.tweens.add({ targets: dark, fillAlpha: 0, duration: 300 * opts.slow, onComplete: () => r() }));
+        await new Promise<void>((r) => scene.tweens.add({ targets: dark, fillAlpha: 0, duration: 300 * slow(), onComplete: () => r() }));
       } else {
         // steal / houseSkim: pinch a seed from your hole/house into his house
-        openWindow(POS[cheat.hole].x, POS[cheat.hole].y, SOW * 3 + 900);
+        openWindow(POS[cheat.hole].x, POS[cheat.hole].y, sow() * 3 + 1500);
         hand.setTexture('hand_open_down');
         await new Promise<void>((r) =>
-          scene.tweens.add({ targets: hand, x: POS[cheat.hole].x, y: POS[cheat.hole].y, duration: 260 * opts.slow, onComplete: () => r() }),
+          scene.tweens.add({ targets: hand, x: POS[cheat.hole].x, y: POS[cheat.hole].y, duration: 260 * slow(), onComplete: () => r() }),
         );
         counts[cheat.hole] = Math.max(0, counts[cheat.hole] - 1);
         drawHole(cheat.hole);
-        await arc('seed_black', POS[cheat.hole], POS[OPP_HOUSE], SOW * 1.5);
+        await arc('seed_black', POS[cheat.hole], POS[OPP_HOUSE], sow() * 1.5);
         counts[OPP_HOUSE]++;
         drawHole(OPP_HOUSE);
       }
@@ -287,13 +295,7 @@ export async function playReplay(
 
   if (caught) {
     windowOpen = false;
-    const stamp = scene.add.image(region.x, region.y, 'tipu_stamp').setDepth(D + 70).setScale(2.6).setAngle(-18).setAlpha(0);
-    scene.tweens.add({ targets: stamp, scale: 1, angle: -8, alpha: 1, duration: 220, ease: 'Back.easeOut' });
-    await wait(200);
-    Sound.thunk();
-    scene.cameras.main.shake(260, 0.012);
-    await wait(1300);
-    scene.tweens.add({ targets: stamp, alpha: 0, duration: 300, onComplete: () => stamp.destroy() });
+    await stampShown;
   }
 
   // fade back out
@@ -303,21 +305,38 @@ export async function playReplay(
   rew.destroy();
   return result;
 
+  /** the red TIPU! stamp, the moment you tap the cheat */
+  function showStamp(): Promise<void> {
+    const at = (ms: number) => new Promise<void>((r) => scene.time.delayedCall(ms, r));
+    const stamp = scene.add.image(region.x, region.y, 'tipu_stamp').setDepth(D + 70).setScale(2.6).setAngle(-18).setAlpha(0);
+    scene.tweens.add({ targets: stamp, scale: 1, angle: -8, alpha: 1, duration: 220, ease: 'Back.easeOut' });
+    return at(200)
+      .then(() => {
+        Sound.thunk();
+        scene.cameras.main.shake(260, 0.012);
+        return at(1300);
+      })
+      .then(() => {
+        scene.tweens.add({ targets: stamp, alpha: 0, duration: 300, onComplete: () => stamp.destroy() });
+      });
+  }
+
   // seed stays in the fist while the hand passes over a hole
   function arcKeep(from: { x: number; y: number }, to: { x: number; y: number }): Promise<void> {
+    if (caught) return Promise.resolve();
     hand.setTexture('hand_fist_down');
     return new Promise<void>((r) =>
       scene.tweens.addCounter({
         from: 0,
         to: 1,
-        duration: SOW * 1.5,
+        duration: sow() * 1.5,
         onUpdate: (tw) => {
           const t = tw.getValue() ?? 0;
           hand.setPosition(from.x + (to.x - from.x) * t, from.y + (to.y - from.y) * t - 90 * Math.sin(Math.PI * t));
         },
         onComplete: () => {
           // hover, then move on still holding the seed
-          scene.tweens.add({ targets: hand, y: to.y - 30, yoyo: true, duration: 300 * opts.slow, onComplete: () => r() });
+          scene.tweens.add({ targets: hand, y: to.y - 30, yoyo: true, duration: 300 * slow(), onComplete: () => r() });
         },
       }),
     );
