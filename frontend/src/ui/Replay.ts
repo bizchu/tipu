@@ -138,6 +138,8 @@ export async function playReplay(
   let windowOpen = false;
   let region = { x: 0, y: 0, r: 0 };
   let lastWrong = 0;
+  /** pending timers that touch replay objects: cancelled when the replay ends */
+  const timers: Phaser.Time.TimerEvent[] = [];
   let stampShown: Promise<void> | null = null;
   const hit = scene.add.zone(960, 540, 1920, 1080).setInteractive();
   layer.add(hit);
@@ -191,19 +193,22 @@ export async function playReplay(
     region = { x, y, r: 185 };
     windowOpen = true;
     prompt.setText('NOW! Tap the hand!').setColor('#ff4a3a');
-    scene.time.delayedCall(ms, () => prompt.setText('TAP the hand when you see it cheat!').setColor('#f6e2b4'));
+    // (guarded: catching the cheat ends the replay early, and this banner may already be gone)
+    timers.push(scene.time.delayedCall(ms, () => prompt.active && prompt.setText('TAP the hand when you see it cheat!').setColor('#f6e2b4')));
     const showHint = typeof opts.hint === 'function' ? opts.hint() : opts.hint;
     if (showHint) {
       const ring = scene.add.circle(x, y, 120).setStrokeStyle(8, 0xff3a2a).setFillStyle(0xff3a2a, 0.12);
       layer.add(ring);
       scene.tweens.add({ targets: ring, scale: 1.25, alpha: 0.3, yoyo: true, repeat: -1, duration: 350 });
-      scene.time.delayedCall(ms, () => ring.destroy());
+      timers.push(scene.time.delayedCall(ms, () => ring.destroy()));
     }
     scene.registry.set('replayWindow', { ...region, open: true }); // used by automated play-tests
-    scene.time.delayedCall(ms, () => {
-      windowOpen = false;
-      scene.registry.set('replayWindow', null);
-    });
+    timers.push(
+      scene.time.delayedCall(ms, () => {
+        windowOpen = false;
+        scene.registry.set('replayWindow', null);
+      }),
+    );
   };
 
   // ---- play each move of the opponent's turn ----
@@ -300,6 +305,8 @@ export async function playReplay(
 
   // fade back out
   await new Promise<void>((r) => scene.tweens.add({ targets: layer, alpha: 0, duration: 350, onComplete: () => r() }));
+  timers.forEach((t) => t.remove(false));
+  scene.registry.set('replayWindow', null);
   layer.destroy(true);
   tear.destroy();
   rew.destroy();
