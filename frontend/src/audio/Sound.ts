@@ -1,6 +1,6 @@
 /**
  * Game sound: Pixabay recordings for the night ambience, horror atmosphere,
- * title music and ending music; everything else (clicks, seeds, rewind,
+ * title, battle, story and ending music; everything else (clicks, seeds, rewind,
  * stamp, heartbeat…) is synthesised with the Web Audio API. Starts only after
  * the first click/key (browser rule) and respects the Settings sound toggle.
  *
@@ -9,7 +9,7 @@
  * tape damage, flicker buzz, page turn.
  */
 type Layer = 'crickets' | 'hum' | 'heartbeat' | 'tension';
-type Sample = 'night' | 'tension' | 'title' | 'ending' | 'button' | 'battle' | 'story';
+type Sample = 'night' | 'tension' | 'title' | 'ending' | 'button' | 'battle' | 'story' | 'angry' | 'scream';
 /** Music and ambience recordings (all from Pixabay, see CREDITS.md). Loops were pre-crossfaded so they repeat smoothly. */
 const SAMPLE_FILES: Record<Sample, string> = {
   night: 'audio/night.mp3',
@@ -17,10 +17,14 @@ const SAMPLE_FILES: Record<Sample, string> = {
   title: 'audio/title.mp3',
   ending: 'audio/ending.mp3',
   button: 'audio/button.mp3',
-  /** optional: looped under the congkak rounds. Drop a file at assets/audio/battle.mp3 to turn it on. */
+  /** optional: looped under the congkak rounds. */
   battle: 'audio/battle.mp3',
-  /** optional: Mahsuri's story (the reveal, then the curse photos). Drop a file at assets/audio/story.mp3. */
+  /** optional: Mahsuri telling what happened after the curse (the photos). */
   story: 'audio/story.mp3',
+  /** Wan Mahora's furious cry when she loses */
+  angry: 'audio/angry.mp3',
+  /** screams under the village chief jump scare */
+  scream: 'audio/scream.mp3',
 };
 /** layers that are driven by a recording, restarted once their file finishes loading */
 const LAYER_SAMPLE: Partial<Record<Layer, Sample>> = { crickets: 'night', tension: 'tension' };
@@ -101,6 +105,11 @@ class SoundEngine {
   /** UI button click */
   click(): void {
     if (!this.oneShot('button', 0.7)) this.blip(900, 0.05, 0.12, 'square');
+  }
+
+  /** Wan Mahora's furious cry when she loses round 1 (recording) */
+  angryCry(): void {
+    this.oneShot('angry', 0.9);
   }
 
   /** play a loaded recording once on the effects bus; false if it isn't loaded */

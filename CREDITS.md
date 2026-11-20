@@ -23,8 +23,12 @@ Music and ambience from [Pixabay](https://pixabay.com) (Pixabay Content License:
 - Night ambience: "Night Time Crickets and Meditation Tunes" by MeditativeTiger
 - Tension layer: "Scary Horror Atmosphere" by Darkne
 - Ending music: "Desecrated Horror Piano Ambience" by KonstantinPazuzuStudio
+- Battle music (congkak rounds): "Dark Ritual Horror" by FluxSound
+- Story music (after the curse): "Cinematic Resolution V2" by SenorMusica81
+- Wan Mahora's angry cry: "Angry Female" by Universfield
+- Screams under the village chief jump scare: "Scream Horror SFX" by jusatti890
 
-Loops were crossfaded and re-encoded for the web. All other sounds (clicks, seeds, rewind, TIPU! stamp, heartbeat, growl, rooster crow) are synthesised in the browser with the Web Audio API.
+Loops were crossfaded, volume-matched and re-encoded for the web. All other sounds (clicks, seeds, rewind, TIPU! stamp, heartbeat, growl, rooster crow) are synthesised in the browser with the Web Audio API.
 
 ## Voices
 - Mahsuri, Wan Mahora and the Village Chief: generated with Google Gemini TTS (`gemini-3.1-flash-tts-preview`, via the Gemini API) by `frontend/scripts/make-voices.mjs`. Prebuilt voices: Mahsuri = Zephyr, Wan Mahora = Pulcherrima, Village Chief = Enceladus (ms-MY accent). Style prompts are in `frontend/scripts/voices.config.json`.

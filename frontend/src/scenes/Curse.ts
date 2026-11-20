@@ -32,8 +32,9 @@ export default class Curse extends Phaser.Scene {
     addTreeAndMahsuri(this);
     new VhsFilter(this, 1);
     Sound.mood({ crickets: 0, hum: 0.15, heartbeat: 0 });
-    Sound.setIntensity(0.4);
-    Sound.music('story', { vol: 0.45, fade: 4, loop: true }); // keeps playing if it started in the reveal
+    Sound.setIntensity(0.15); // keep the horror drone low so the story music leads
+    // "Cinematic Resolution" while she tells what happened after the curse (assets/audio/story.mp3)
+    Sound.music('story', { vol: 0.6, fade: 4, loop: true });
     const dim = this.add.rectangle(960, 540, 1920, 1080, 0x000000, 0).setDepth(8);
     this.tweens.add({ targets: dim, fillAlpha: 0.55, duration: 600 });
     const box = new StoryBox(this);
@@ -59,11 +60,8 @@ export default class Curse extends Phaser.Scene {
     box.setVisible(true);
     const status = (n: number) =>
       n === 0 ? 'Tap each photo to remember what happened.' : n < 4 ? `${4 - n} more ${4 - n === 1 ? 'memory' : 'memories'}...` : dialogue.curseEnd;
-    const hint = this.add
-      .text(960, 1000, status(0), { fontFamily: 'Georgia, serif', fontSize: '40px', color: '#f6e2b4', backgroundColor: '#140c0add', padding: { x: 24, y: 12 } })
-      .setOrigin(0.5)
-      .setDepth(60);
-    box.setVisible(false);
+    // the hint sits in the story box under Mahsuri (which also covers the bottom edge of her picture)
+    box.show('Mahsuri', status(0));
 
     cards.forEach((img, i) => {
       const nudge = this.tweens.add({ targets: img, y: img.y - 10, yoyo: true, repeat: -1, duration: 900, delay: i * 150, ease: 'Sine.easeInOut' });
@@ -78,7 +76,7 @@ export default class Curse extends Phaser.Scene {
         tick.setOrigin(0.5);
         Sound.page();
         this.openZoom(i, () => {
-          hint.setText(status(seen.size));
+          box.show('Mahsuri', status(seen.size));
           if (seen.size === 4 && !this.children.getByName('continue')) void Voice.speak(dialogue.curseEnd);
           if (seen.size === 4 && !this.children.getByName('continue')) this.showContinue();
         });
@@ -131,7 +129,7 @@ export default class Curse extends Phaser.Scene {
 
   private showContinue(): void {
     const b = this.add
-      .text(1500, 920, 'CONTINUE ▶', { fontFamily: 'Courier New, monospace', fontSize: '40px', color: '#ffffff', backgroundColor: '#b8231f', padding: { x: 22, y: 10 } })
+      .text(1640, 953, 'CONTINUE ▶', { fontFamily: 'Courier New, monospace', fontSize: '40px', color: '#ffffff', backgroundColor: '#b8231f', padding: { x: 22, y: 10 } })
       .setOrigin(0.5)
       .setDepth(61)
       .setName('continue')

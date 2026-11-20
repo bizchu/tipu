@@ -166,8 +166,8 @@ export default class BoardScene extends Phaser.Scene {
       Voice.stop();
       Sound.stopMusic(2);
     });
-    // battle music under the round (only if assets/audio/battle.mp3 exists)
-    Sound.music('battle', { vol: 0.4, fade: 3, loop: true });
+    // "Dark Ritual Horror" under the round (assets/audio/battle.mp3)
+    Sound.music('battle', { vol: 0.7, fade: 3, loop: true });
     this.resolvedConfig = parseRoundConfig(data);
     const { background, opponent, seedsPerHole } = this.resolvedConfig;
     this.glowOverlays = [];
@@ -649,7 +649,9 @@ export default class BoardScene extends Phaser.Scene {
     const baseY = p.y;
     this.cameras.main.shake(260, 0.006);
     Sound.glitch();
+    Sound.angryCry(); // furious cry before "You WON?!"
     this.tweens.add({ targets: p, scale: p.scale * 1.06, yoyo: true, duration: 140 });
+    await this.delay(1100);
     for (const l of boardLines.wanMahoraLoses.lines) {
       // wait for the voice line too, so it isn't cut off
       await Promise.all([this.say(name, l), this.delay(2400)]);

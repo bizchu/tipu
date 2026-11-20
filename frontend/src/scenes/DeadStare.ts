@@ -28,6 +28,8 @@ export default class DeadStare extends Phaser.Scene {
     Sound.mood({ crickets: 0, hum: 0.3, heartbeat: 0.45 });
     Sound.setIntensity(0.75);
     Sound.setHeartbeatRate(0.8);
+    // jump scare: screams layered quietly underneath ("Scream Horror SFX", assets/audio/scream.mp3)
+    Sound.music('scream', { vol: 0.35, fade: 0.2, loop: false });
     this.cameras.main.fadeIn(500);
 
     const face = this.add.image(960, 1080, 'chief_dead').setOrigin(0.5, 1).setDepth(5).setScale(0.9);
@@ -55,6 +57,7 @@ export default class DeadStare extends Phaser.Scene {
     Sound.glitch();
     vhs.burst(500);
     await wait(500);
+    Sound.stopMusic(1);
     this.cameras.main.fadeOut(400, 255, 255, 255);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start('Memory', { set: 2 }));
   }

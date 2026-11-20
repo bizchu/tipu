@@ -71,6 +71,19 @@ export class StoryBox {
     return this;
   }
 
+  /** Shows a line straight away (no typing, no "tap to continue"): for hints that stay up while the player does something. */
+  show(name: string, text: string): this {
+    this.typing?.remove();
+    this.resolveNext = undefined;
+    this.setVisible(true);
+    this.nameText.setText(name);
+    this.nameText.setFontSize(name.length > 12 ? 24 : 30);
+    this.full = text;
+    this.body.setText(text);
+    this.arrow.setVisible(false);
+    return this;
+  }
+
   /** Types out one line and resolves when the player clicks to continue. */
   say(name: string, text: string): Promise<void> {
     this.setVisible(true);

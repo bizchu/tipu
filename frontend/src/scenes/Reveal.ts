@@ -15,6 +15,24 @@ export function addTreeAndMahsuri(scene: Phaser.Scene): { tree: Phaser.GameObjec
   const s = (1920 / 682) * 1.5;
   const tree = scene.add.sprite(960, 540, 'reveal_tree').setOrigin(TREE_FOCUS.x, TREE_FOCUS.y).setScale(s).setTint(0x8a8a8a).play('reveal_tree_loop');
   const mahsuri = scene.add.image(960, -16, 'mahsuri_tied').setOrigin(0.5, 0).setDepth(5);
+  // her picture stops at y≈864: fade the bottom of the screen into darkness so she doesn't look cut off / floating
+  if (!scene.textures.exists('mahsuri_fade')) {
+    const c = scene.textures.createCanvas('mahsuri_fade', 4, 300);
+    if (c) {
+      const g = c.getContext();
+      const grd = g.createLinearGradient(0, 0, 0, 300);
+      grd.addColorStop(0, 'rgba(0,0,0,0)');
+      grd.addColorStop(0.3, 'rgba(0,0,0,0.75)');
+      grd.addColorStop(0.36, 'rgba(0,0,0,1)');
+      grd.addColorStop(1, 'rgba(0,0,0,1)');
+      g.fillStyle = grd;
+      g.fillRect(0, 0, 4, 300);
+      c.refresh();
+    }
+  }
+  const fade = scene.add.image(960, 740, 'mahsuri_fade').setOrigin(0.5, 0).setDisplaySize(1920, 300).setDepth(6);
+  mahsuri.on('destroy', () => fade.destroy());
+  scene.events.on(Phaser.Scenes.Events.UPDATE, () => fade.active && fade.setAlpha(mahsuri.alpha));
   return { tree, mahsuri };
 }
 
@@ -74,8 +92,6 @@ export default class Reveal extends Phaser.Scene {
     Sound.glitch();
     Sound.mood({ heartbeat: 0, hum: 0.12 });
     Sound.setIntensity(0.3);
-    // Mahsuri's story music starts here and carries on through the curse photos (if assets/audio/story.mp3 exists)
-    Sound.music('story', { vol: 0.45, fade: 4, loop: true });
     const flash = this.add.rectangle(960, 540, 1920, 1080, 0xffffff, 1).setDepth(60);
     photo.destroy();
     const { mahsuri } = addTreeAndMahsuri(this);
