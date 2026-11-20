@@ -12,10 +12,10 @@ All character art, backgrounds, memory photos, UI and story by **Noelle Loh Mei 
 ## Images
 - "Les événements de Siam (L'armée siamoise en marche)", Le Petit Journal, 1893. Public domain. Used in assets/backgrounds/memory3_curse/siam_army_card.png
 - Curse card "Rice fire": placeholder made from Noelle's own artwork.
-- Curse card "Nothing would grow" (cracked padi field): TODO source + licence. Given an old-photo treatment. File: assets/game/curse_crops.webp
-- Curse card "Seven generations" (family walking away): TODO source + licence. Given an old-photo treatment. File: assets/game/curse_village.webp
-- Rooster (dawn scene, background removed): TODO source + licence. File: assets/game/rooster.webp
-- Room/outside background photobash elements (door, rug, shutters, fan, dresser, lamp, clock, plates, chair, cushions, tapes, fabrics, jewellery): TODO link + licence for each.
+- Curse card "Nothing would grow" (cracked dry land): photo from [Pixabay](https://pixabay.com/photos/drought-dehydrated-clay-floor-earth-1675729/) (Pixabay Content License), given an old-photo treatment. File: assets/game/curse_crops.webp
+- Curse card "Seven generations" (mother and child walking away): photo from [Pixabay](https://pixabay.com/photos/mother-child-walking-walk-1077334/) (Pixabay Content License), given an old-photo treatment. File: assets/game/curse_village.webp
+- Rooster (dawn scene): AI-generated image "Ayam Hutan" from [Pixabay](https://pixabay.com/illustrations/ayam-hutan-chicken-nature-animal-9756337/) (Pixabay Content License), background removed and flipped. File: assets/game/rooster.webp
+- Room and outside backgrounds: original collage / photobash by Noelle Loh Mei Hui.
 
 ## Sound
 Music and ambience from [Pixabay](https://pixabay.com) (Pixabay Content License: free to use, no attribution required; credited anyway):

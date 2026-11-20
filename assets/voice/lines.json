@@ -500,7 +500,7 @@
     "id": "board_wan_lose_01",
     "section": "board",
     "speaker": "woman",
-    "text": "...You won?",
+    "text": "You WON?!",
     "file": "board_wan_lose_01.m4a"
   },
   {
@@ -515,14 +515,14 @@
     "section": "board",
     "speaker": "woman",
     "text": "How very clever of you.",
-    "file": null
+    "file": "board_wan_lose_03.m4a"
   },
   {
     "id": "board_wan_lose_04",
     "section": "board",
     "speaker": "woman",
     "text": "Very well, then.",
-    "file": null
+    "file": "board_wan_lose_04.m4a"
   },
   {
     "id": "board_wan_lose_final",

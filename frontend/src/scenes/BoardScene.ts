@@ -102,6 +102,9 @@ export default class BoardScene extends Phaser.Scene {
   private oppExtraTurnCount = 0;
   private wrongClicks = 0;
   private dialogueName!: Phaser.GameObjects.Text;
+  private sayBusy = false;
+  private sayPending: { name: string; text: string; resolve: () => void } | null = null;
+  private sceneEnded = false;
   private dialogueText!: Phaser.GameObjects.Text;
   private handSprite!: Phaser.GameObjects.Image;
   private glowOverlays: Phaser.GameObjects.Graphics[] = [];
@@ -162,7 +165,13 @@ export default class BoardScene extends Phaser.Scene {
   // --------------------------------------------------------------------------
 
   create(data: unknown): void {
+    this.sayBusy = false;
+    this.sayPending = null;
+    this.sceneEnded = false;
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.sceneEnded = true;
+      this.sayPending?.resolve();
+      this.sayPending = null;
       Voice.stop();
       Sound.stopMusic(2);
     });
@@ -945,13 +954,35 @@ export default class BoardScene extends Phaser.Scene {
     return this.registry.get(`introduced_${round}`) ? NAMES[opponent] : UNKNOWN[opponent];
   }
 
-  /** Shows a line in the dialogue box and speaks it if it has a voice clip. Resolves when the voice finishes. */
+  /**
+   * Shows a line in the dialogue box and speaks it if it has a voice clip. Resolves when it has been spoken.
+   * While a voiced line is playing, the box keeps showing it: the next line waits its turn (only the newest
+   * waiting line is kept, so the box never falls far behind the game), so text and voice always match.
+   */
   private say(name: string, text: string): Promise<void> {
+    return new Promise<void>((resolve) => {
+      if (this.sayBusy) {
+        this.sayPending?.resolve(); // an older waiting line is dropped
+        this.sayPending = { name, text, resolve };
+        return;
+      }
+      this.showLine(name, text, resolve);
+    });
+  }
+
+  private showLine(name: string, text: string, resolve: () => void): void {
+    if (this.sceneEnded) return resolve();
+    this.sayBusy = true;
     this.dialogueName.setText(name);
-    const size = name.length > 10 ? 22 : 26;
-    this.dialogueName.setFontSize(size);
+    this.dialogueName.setFontSize(name.length > 10 ? 22 : 26);
     this.dialogueText.setText(text);
-    return Voice.speak(text, { interrupt: false }); // board lines don't cut each other off
+    void Voice.speak(text).then(() => {
+      this.sayBusy = false;
+      resolve();
+      const next = this.sayPending;
+      this.sayPending = null;
+      if (next) this.showLine(next.name, next.text, next.resolve);
+    });
   }
 }
 

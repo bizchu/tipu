@@ -5,6 +5,7 @@
  *   npm run voices              make any missing / changed lines
  *   npm run voices -- --dry     just list the lines, no API calls
  *   npm run voices -- --only=chief,woman   only these characters
+ *   npm run voices -- --ids=prologue_04     only these lines (ids are in assets/voice/lines.json)
  *   npm run voices -- --force   remake every generated line
  *   npm run voices -- --chirp   fill gaps with Chirp 3 HD voices (no daily cap, no style prompts)
  *
@@ -38,6 +39,7 @@ const args = process.argv.slice(2);
 const DRY = args.includes('--dry');
 const FORCE = args.includes('--force');
 const ONLY = (args.find((a) => a.startsWith('--only=')) ?? '').slice(7).split(',').filter(Boolean);
+const IDS = (args.find((a) => a.startsWith('--ids=')) ?? '').slice(6).split(',').filter(Boolean); // e.g. --ids=prologue_04,board_wan_lose_01
 
 /** Must match voiceKey() in src/audio/Voice.ts */
 const voiceKey = (t) => t.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -91,7 +93,7 @@ for (const l of lines) {
 function settingsFor(l, styleOverride) {
   const c = config.characters[l.speaker];
   const style = styleOverride ?? config.lineStyles?.[l.id] ?? c.sectionStyles?.[l.section] ?? c.style ?? '';
-  return { model: c.model ?? config.model, voice: c.voice, languageCode: c.languageCode, style };
+  return { model: c.model ?? config.model, voice: c.voice, languageCode: config.lineLanguages?.[l.id] ?? c.languageCode, style };
 }
 const hashOf = (l) => createHash('sha1').update(JSON.stringify([l.text, settingsFor(l)])).digest('hex').slice(0, 12);
 const existing = (id) => EXTS.map((e) => `${id}.${e}`).find((f) => existsSync(join(OUT, f)));
@@ -202,7 +204,7 @@ function compress(wavPath) {
   return out;
 }
 
-const todo = lines.filter((l) => seen.get(voiceKey(l.text)) === l && (!ONLY.length || ONLY.includes(l.speaker)));
+const todo = lines.filter((l) => seen.get(voiceKey(l.text)) === l && (!ONLY.length || ONLY.includes(l.speaker)) && (!IDS.length || IDS.includes(l.id)));
 console.log(`${lines.length} voice lines (${todo.length} selected)\n`);
 if (DRY) {
   for (const l of todo) console.log(`${l.id.padEnd(28)} ${l.speaker.padEnd(9)} ${l.text}`);
@@ -232,7 +234,7 @@ for (const l of todo) {
     // Gemini TTS sometimes refuses a line ("SAFETY"), often because of the style prompt.
     // Try the normal style 3 times, then the character's gentler fallbackStyle, then no style at all.
     const fallback = config.characters[l.speaker].fallbackStyle;
-    const attempts = [undefined, undefined, undefined, ...(fallback ? [fallback, fallback] : []), ''];
+    const attempts = [undefined, undefined, ...(fallback ? [fallback] : []), '']; // max 4 requests per line (daily limit!)
     let res;
     for (let i = 0; ; i++) {
       try {

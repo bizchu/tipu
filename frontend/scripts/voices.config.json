@@ -43,6 +43,12 @@
     "board_wan_lose_02": "Older woman, still furious, loud and bitter, spitting the words. Slight Malaysian accent.",
     "board_wan_lose_03": "Older woman, furious and sarcastic, loud and sharp. Slight Malaysian accent.",
     "board_wan_lose_04": "Older woman, angry and contemptuous, voice raised, sneering. Slight Malaysian accent.",
-    "board_wan_lose_final": "Older woman, cold fury, low and threatening, every word slow and deliberate. Slight Malaysian accent."
+    "board_wan_lose_final": "Older woman, cold fury, low and threatening, every word slow and deliberate. Slight Malaysian accent.",
+    "prologue_07": "Speak in a sweet, teasing voice with a hint of coldness, like a sly older Malay auntie toying with someone. Clear and confident, at a normal speaking volume, NOT whispering. Strong Malaysian accent: Malaysian English, NOT American, with Malay rhythm and pronunciation.",
+    "board_wan_myTurn_02": "Speak in a sweet, teasing voice with a hint of coldness, like a sly older Malay auntie toying with someone. Clear and confident, at a normal speaking volume, NOT whispering. Strong Malaysian accent: Malaysian English, NOT American, with Malay rhythm and pronunciation."
+  },
+  "lineLanguages": {
+    "prologue_07": "ms-MY",
+    "board_wan_myTurn_02": "ms-MY"
   }
 }

@@ -70,7 +70,9 @@
   "baseless accusations.": "board_chief_clean_01.m4a",
   "the court finds nothing.": "board_chief_clean_02.m4a",
   "you have forgotten your own chief? i rule this village. wan mahora is my wife.": "board_chief_intro.m4a",
-  "...you won?": "board_wan_lose_01.m4a",
+  "you won?!": "board_wan_lose_01.m4a",
   "hah! don't look so pleased, sayang.": "board_wan_lose_02.m4a",
+  "how very clever of you.": "board_wan_lose_03.m4a",
+  "very well, then.": "board_wan_lose_04.m4a",
   "fine. i'll show you.": "board_wan_lose_final.m4a"
 }
