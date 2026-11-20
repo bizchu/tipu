@@ -5,28 +5,42 @@
       "myTurn": [
         "My turn, sayang...",
         "Watch closely now.",
-        "Hmm... let me see."
+        "Hmm... let me see.",
+        "Let auntie show you how it's done.",
+        "Don't blink, sayang.",
+        "Now, where shall I put these..."
       ],
       "extra": [
         "Again? How lucky for me.",
-        "One more, sayang."
+        "One more, sayang.",
+        "Oh, another turn? Lovely.",
+        "The seeds like me tonight.",
+        "Not done yet, sayang."
       ],
       "captured": [
         "Tch... you took those?",
-        "Cheeky girl."
+        "Cheeky girl.",
+        "Hmph. Beginner's luck.",
+        "Enjoy it, sayang. It won't last."
       ],
       "capturing": [
         "Mine now, sayang.",
-        "Did you see that coming?"
+        "Did you see that coming?",
+        "Thank you, sayang.",
+        "Too slow."
       ],
       "caught": [
         "Tch... clever girl.",
         "Such sharp eyes, sayang.",
-        "Hmph. Lucky guess."
+        "Hmph. Lucky guess.",
+        "Aiyo, my hand slipped.",
+        "Such a fuss over one seed."
       ],
       "clean": [
         "Accusing me? How rude, sayang.",
-        "Nothing there, sayang."
+        "Nothing there, sayang.",
+        "See? Nothing, sayang.",
+        "You don't trust your auntie?"
       ]
     },
     "village_chief": {
@@ -34,28 +48,43 @@
       "myTurn": [
         "My move.",
         "Observe.",
-        "The court proceeds."
+        "The court proceeds.",
+        "Silence. I am thinking.",
+        "Watch, and learn your place.",
+        "My turn. Pay attention."
       ],
       "extra": [
         "Again.",
-        "The law favours me."
+        "The law favours me.",
+        "Once more.",
+        "The court continues.",
+        "I am not finished.",
+        "Another turn for the chief."
       ],
       "captured": [
         "...Noted.",
-        "You overstep."
+        "You overstep.",
+        "Enjoy it while you can.",
+        "That will be remembered."
       ],
       "capturing": [
         "Confiscated.",
-        "As the court has judged."
+        "As the court has judged.",
+        "Forfeited.",
+        "These belong to me now."
       ],
       "caught": [
         "You dare accuse me?",
         "...Very well. Continue.",
-        "Impertinent."
+        "Impertinent.",
+        "A small mistake. Nothing more.",
+        "Mind your tongue."
       ],
       "clean": [
         "Baseless accusations.",
-        "The court finds nothing."
+        "The court finds nothing.",
+        "Your eyes deceive you.",
+        "Nothing happened. Sit down."
       ]
     }
   },

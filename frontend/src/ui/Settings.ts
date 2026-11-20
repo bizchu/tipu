@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { Sound } from '../audio/Sound';
 import { Voice } from '../audio/Voice';
+import { AutoPlay } from './AutoPlay';
 
 /**
  * Settings panel (sound on/off, ambience volume, sound-effects volume) plus an
@@ -50,6 +51,7 @@ export function openSettings(): void {
     <div class="p" role="dialog" aria-label="Settings">
       <h2>Settings</h2>
       <button id="s-sound">Sound: ${sound ? 'ON' : 'OFF'}</button>
+      <button id="s-auto">Auto-play story: ${AutoPlay.enabled ? 'ON' : 'OFF'}</button>
       <div id="s-sliders" class="${sound ? '' : 'dim'}">
         <label for="s-amb">Background &amp; music</label>
         <div class="row"><input id="s-amb" type="range" min="0" max="100" value="${pct(Sound.volume('ambience'))}"><span class="v" id="s-amb-v">${pct(Sound.volume('ambience'))}%</span></div>
@@ -61,6 +63,7 @@ export function openSettings(): void {
       <h3>Controls</h3>
       <table>
         <tr><td>Continue story</td><td>Tap / click, or Space / Enter</td></tr>
+        <tr><td>Auto-play story</td><td>AUTO button on the text box, or A</td></tr>
         <tr><td>Play a hole</td><td>Tap / click one of your 3 holes</td></tr>
         <tr><td>Rewind the tape</td><td>◀◀ REW (top-right) or R</td></tr>
         <tr><td>Catch the cheat</td><td>Tap the cheating hand (or the hole it's cheating at) the moment you see it in the replay</td></tr>
@@ -73,6 +76,10 @@ export function openSettings(): void {
   document.body.appendChild(m);
 
   const q = <T extends HTMLElement>(sel: string) => m.querySelector(sel) as T;
+  q<HTMLButtonElement>('#s-auto').addEventListener('click', (e) => {
+    AutoPlay.toggle();
+    (e.target as HTMLButtonElement).textContent = `Auto-play story: ${AutoPlay.enabled ? 'ON' : 'OFF'}`;
+  });
   q<HTMLButtonElement>('#s-sound').addEventListener('click', (e) => {
     sound = !sound;
     try {

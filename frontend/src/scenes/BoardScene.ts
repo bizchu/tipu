@@ -105,6 +105,8 @@ export default class BoardScene extends Phaser.Scene {
   private sayBusy = false;
   private sayPending: { name: string; text: string; resolve: () => void } | null = null;
   private sceneEnded = false;
+  /** last line used per situation, so the same line never plays twice in a row */
+  private lastLine = new Map<string, string>();
   private dialogueText!: Phaser.GameObjects.Text;
   private handSprite!: Phaser.GameObjects.Image;
   private glowOverlays: Phaser.GameObjects.Graphics[] = [];
@@ -379,10 +381,9 @@ export default class BoardScene extends Phaser.Scene {
   }
 
   private endPlayerTurn(result: FullMoveResult): void {
-    const { opponent } = this.resolvedConfig;
     if (result.captured && result.captureHole !== undefined && (OPP_HOLES as readonly number[]).includes(result.captureHole)) {
       this.setPortrait('angry');
-      this.say(this.oppLabel(), pick(LINES[opponent].captured));
+      this.say(this.oppLabel(), this.freshLine('captured'));
     }
     if (result.extraTurn) {
       this.say('???', 'Another turn!');
@@ -408,9 +409,9 @@ export default class BoardScene extends Phaser.Scene {
         this.say(this.oppLabel(), INTRO[opponent]);
         this.time.delayedCall(2600, () => {
           this.registry.set(introKey, true);
-          this.say(this.oppLabel(), pick(LINES[opponent].myTurn));
+          this.say(this.oppLabel(), this.freshLine('myTurn'));
         });
-      } else if (this.oppExtraTurnCount === 0) this.say(this.oppLabel(), pick(LINES[opponent].myTurn));
+      } else if (this.oppExtraTurnCount === 0) this.say(this.oppLabel(), this.freshLine('myTurn'));
     });
     this.time.delayedCall(800 + Math.random() * 400 + 600 + (intro ? 3400 : 0), () => {
       const hole = selectOpponentHole(this.board);
@@ -507,7 +508,7 @@ export default class BoardScene extends Phaser.Scene {
         const who = this.oppLabel();
         this.say(who, '...');
         // live AI reaction (falls back to a scripted line within 2 s)
-        void getLine(opponent, `Mahsuri rewound the tape and caught you cheating: ${CHEAT_TELLS[type]}`, LINES[opponent].caught).then((line) => {
+        void getLine(opponent, `Mahsuri rewound the tape and caught you cheating: ${CHEAT_TELLS[type]}`, [this.freshLine('caught')]).then((line) => {
           if (this.sys.isActive() && this.sceneState !== SceneState.GAME_OVER) this.say(who, line);
         });
         this.time.delayedCall(3200, () => this.say('???', CHEAT_TELLS[type] + ' Undone.'));
@@ -530,7 +531,7 @@ export default class BoardScene extends Phaser.Scene {
       }
     } else {
       this.hurtTape(TAPE.cleanRewind);
-      this.say(this.oppLabel(), pick(LINES[opponent].clean));
+      this.say(this.oppLabel(), this.freshLine('clean'));
     }
 
     if (this.health <= 0) {
@@ -608,11 +609,10 @@ export default class BoardScene extends Phaser.Scene {
   }
 
   private endOpponentTurn(result: FullMoveResult): void {
-    const { opponent } = this.resolvedConfig;
-    if (result.captured) this.say(this.oppLabel(), pick(LINES[opponent].capturing));
+    if (result.captured) this.say(this.oppLabel(), this.freshLine('capturing'));
     if (result.extraTurn && this.oppExtraTurnCount < MAX_OPP_EXTRA_TURNS) {
       this.oppExtraTurnCount++;
-      this.say(this.oppLabel(), pick(LINES[opponent].extra));
+      this.say(this.oppLabel(), this.freshLine('extra'));
       this.triggerOpponentTurn();
       return;
     }
@@ -952,6 +952,17 @@ export default class BoardScene extends Phaser.Scene {
   private oppLabel(): string {
     const { opponent, round } = this.resolvedConfig;
     return this.registry.get(`introduced_${round}`) ? NAMES[opponent] : UNKNOWN[opponent];
+  }
+
+  /** A random scripted line for this opponent and situation, never the same as last time. */
+  private freshLine(kind: keyof (typeof LINES)['wan_mahora']): string {
+    const opts = LINES[this.resolvedConfig.opponent][kind] as readonly string[] | string;
+    const list = Array.isArray(opts) ? opts : [opts as string];
+    const key = this.resolvedConfig.opponent + ':' + kind;
+    const choices = list.length > 1 ? list.filter((l) => l !== this.lastLine.get(key)) : list;
+    const line = pick(choices);
+    this.lastLine.set(key, line);
+    return line;
   }
 
   /**

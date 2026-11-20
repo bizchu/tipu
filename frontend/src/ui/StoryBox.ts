@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { Voice } from '../audio/Voice';
+import { AutoPlay } from './AutoPlay';
 
 export interface Line {
   name: string;
@@ -21,6 +22,12 @@ export class StoryBox {
   private full = '';
   private typing?: Phaser.Time.TimerEvent;
   private resolveNext?: () => void;
+  private autoBtn: Phaser.GameObjects.Text;
+  private ignoreNextUp = false;
+  /** the line currently on screen: finished typing + finished speaking */
+  private lineDone: Promise<void> = Promise.resolve();
+  private lineId = 0;
+  private typedEarly?: () => void;
 
   static preload(scene: Phaser.Scene): void {
     scene.load.image('textbox_story', 'ui/textbox_story.png');
@@ -54,19 +61,43 @@ export class StoryBox {
       .setDepth(depth + 2)
       .setVisible(false);
     scene.tweens.add({ targets: this.arrow, alpha: 0.2, yoyo: true, repeat: -1, duration: 450 });
+    // AUTO toggle on the box (also the A key or Settings)
+    this.autoBtn = scene.add
+      .text(x + w - 130, y + 22, '', { fontFamily: 'Courier New, monospace', fontSize: '24px', fontStyle: 'bold', padding: { x: 10, y: 4 } })
+      .setOrigin(1, 0)
+      .setDepth(depth + 3)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => {
+        this.ignoreNextUp = true; // don't also skip the line
+        AutoPlay.toggle();
+      });
+    const paint = (on: boolean) => {
+      this.autoBtn.setText(on ? 'AUTO ▶ ON' : 'AUTO ▶ OFF').setColor(on ? '#ffe08a' : '#a08a66').setBackgroundColor(on ? '#5a2a14' : '#00000000');
+      if (on) this.maybeAuto();
+    };
+    paint(AutoPlay.enabled);
+    const unsub = AutoPlay.onChange(paint);
 
     const advance = () => this.advance();
-    scene.input.on('pointerup', advance);
+    const tapAdvance = () => {
+      if (this.ignoreNextUp) {
+        this.ignoreNextUp = false;
+        return;
+      }
+      this.advance();
+    };
+    scene.input.on('pointerup', tapAdvance);
     scene.input.keyboard?.on('keydown-SPACE', advance);
     scene.input.keyboard?.on('keydown-ENTER', advance);
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      scene.input.off('pointerup', advance);
+      scene.input.off('pointerup', tapAdvance);
+      unsub();
       Voice.stop();
     });
   }
 
   setVisible(v: boolean): this {
-    [this.box, this.tag, this.nameText, this.body].forEach((o) => o.setVisible(v));
+    [this.box, this.tag, this.nameText, this.body, this.autoBtn].forEach((o) => o.setVisible(v));
     if (!v) this.arrow.setVisible(false);
     return this;
   }
@@ -75,6 +106,7 @@ export class StoryBox {
   show(name: string, text: string): this {
     this.typing?.remove();
     this.resolveNext = undefined;
+    this.lineId++;
     this.setVisible(true);
     this.nameText.setText(name);
     this.nameText.setFontSize(name.length > 12 ? 24 : 30);
@@ -92,8 +124,11 @@ export class StoryBox {
     this.full = text;
     this.body.setText('');
     this.arrow.setVisible(false);
-    void Voice.speak(text); // stops the previous line's voice if it's still going
+    const spoken = Voice.speak(text); // stops the previous line's voice if it's still going
     let i = 0;
+    let typed!: () => void;
+    const typedDone = new Promise<void>((r) => (typed = r));
+    this.typedEarly = typed;
     this.typing?.remove();
     this.typing = this.scene.time.addEvent({
       delay: 32,
@@ -101,10 +136,29 @@ export class StoryBox {
       callback: () => {
         i++;
         this.body.setText(text.slice(0, i));
-        if (i >= text.length) this.arrow.setVisible(true);
+        if (i >= text.length) {
+          this.arrow.setVisible(true);
+          typed();
+        }
       },
     });
-    return new Promise((resolve) => (this.resolveNext = resolve));
+    // auto-play waits for the voice; lines with no voice get reading time instead
+    const id = ++this.lineId;
+    const readTime = Voice.has(text) ? 700 : Math.max(1400, text.length * 55);
+    this.lineDone = Promise.all([typedDone, spoken]).then(() => new Promise<void>((r) => this.scene.time.delayedCall(readTime, r)));
+    const p = new Promise<void>((resolve) => (this.resolveNext = resolve));
+    this.maybeAuto(id);
+    return p;
+  }
+
+  /** In auto-play, move on once the current line has been typed and spoken. */
+  private maybeAuto(id = this.lineId): void {
+    if (!AutoPlay.enabled || !this.resolveNext) return;
+    void this.lineDone.then(() => {
+      if (!AutoPlay.enabled || id !== this.lineId || !this.resolveNext || !this.scene.sys.isActive()) return;
+      if (this.body.text.length < this.full.length) this.body.setText(this.full);
+      this.advance();
+    });
   }
 
   private advance(): void {
@@ -113,6 +167,7 @@ export class StoryBox {
       this.typing?.remove();
       this.body.setText(this.full);
       this.arrow.setVisible(true);
+      this.typedEarly?.();
       return;
     }
     const r = this.resolveNext;
