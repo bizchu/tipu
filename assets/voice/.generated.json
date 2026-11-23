@@ -274,5 +274,121 @@
   "board_wan_lose_04": {
     "file": "board_wan_lose_04.m4a",
     "hash": "b7a4220a6bea"
+  },
+  "board_wan_myTurn_04": {
+    "file": "board_wan_myTurn_04.m4a",
+    "hash": "6b57a337c1cf"
+  },
+  "board_wan_myTurn_05": {
+    "file": "board_wan_myTurn_05.m4a",
+    "hash": "6a1fc631c241"
+  },
+  "board_wan_myTurn_06": {
+    "file": "board_wan_myTurn_06.m4a",
+    "hash": "d6e2ea8d530c"
+  },
+  "board_wan_extra_03": {
+    "file": "board_wan_extra_03.m4a",
+    "hash": "c7f6922e1088"
+  },
+  "board_wan_extra_04": {
+    "file": "board_wan_extra_04.m4a",
+    "hash": "48adda78204a"
+  },
+  "board_wan_extra_05": {
+    "file": "board_wan_extra_05.m4a",
+    "hash": "8794ab464641"
+  },
+  "board_wan_captured_03": {
+    "file": "board_wan_captured_03.m4a",
+    "hash": "c62e72ff7bb6"
+  },
+  "board_wan_captured_04": {
+    "file": "board_wan_captured_04.m4a",
+    "hash": "7140f9290d42"
+  },
+  "board_wan_capturing_03": {
+    "file": "board_wan_capturing_03.m4a",
+    "hash": "7341bd1e91f1"
+  },
+  "board_wan_capturing_04": {
+    "file": "board_wan_capturing_04.m4a",
+    "hash": "0cd41f9fbe56"
+  },
+  "board_wan_caught_04": {
+    "file": "board_wan_caught_04.m4a",
+    "hash": "9803af55f835"
+  },
+  "board_wan_caught_05": {
+    "file": "board_wan_caught_05.m4a",
+    "hash": "d4c9bbae9ce5"
+  },
+  "board_wan_clean_03": {
+    "file": "board_wan_clean_03.m4a",
+    "hash": "fbc391eb6ece"
+  },
+  "board_wan_clean_04": {
+    "file": "board_wan_clean_04.m4a",
+    "hash": "98e5ac81b330"
+  },
+  "board_chief_myTurn_04": {
+    "file": "board_chief_myTurn_04.m4a",
+    "hash": "c4bbd2d62203"
+  },
+  "board_chief_myTurn_05": {
+    "file": "board_chief_myTurn_05.m4a",
+    "hash": "e34c2125f481"
+  },
+  "board_chief_myTurn_06": {
+    "file": "board_chief_myTurn_06.m4a",
+    "hash": "1be3516752e8"
+  },
+  "board_chief_extra_03": {
+    "file": "board_chief_extra_03.m4a",
+    "hash": "7eaf3e928ca4"
+  },
+  "board_chief_extra_04": {
+    "file": "board_chief_extra_04.m4a",
+    "hash": "75eeb3b3f3f4"
+  },
+  "board_chief_extra_05": {
+    "file": "board_chief_extra_05.m4a",
+    "hash": "897f83ada115"
+  },
+  "board_chief_extra_06": {
+    "file": "board_chief_extra_06.m4a",
+    "hash": "34dcd316e008"
+  },
+  "board_chief_captured_03": {
+    "file": "board_chief_captured_03.m4a",
+    "hash": "986803fa3f13"
+  },
+  "board_chief_captured_04": {
+    "file": "board_chief_captured_04.m4a",
+    "hash": "e89d098a2bfd"
+  },
+  "board_chief_capturing_03": {
+    "file": "board_chief_capturing_03.m4a",
+    "hash": "2afdbe5df2ad"
+  },
+  "board_chief_capturing_04": {
+    "file": "board_chief_capturing_04.m4a",
+    "hash": "a53c0acd8762"
+  },
+  "board_chief_caught_04": {
+    "file": "board_chief_caught_04.m4a",
+    "hash": "8cd01e01ea96"
+  },
+  "board_chief_caught_05": {
+    "file": "board_chief_caught_05.m4a",
+    "hash": "adfec6cc72ce"
+  },
+  "board_chief_clean_03": {
+    "file": "board_chief_clean_03.m4a",
+    "hash": "fdbdc15fbf88"
+  },
+  "board_chief_clean_04": {
+    "file": "board_chief_clean_04.m4a",
+    "hash": "a1669e060b92"
   }
 }

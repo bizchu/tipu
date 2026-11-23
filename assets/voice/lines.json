@@ -301,6 +301,27 @@
     "file": "board_wan_myTurn_03.m4a"
   },
   {
+    "id": "board_wan_myTurn_04",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Let auntie show you how it's done.",
+    "file": "board_wan_myTurn_04.wav"
+  },
+  {
+    "id": "board_wan_myTurn_05",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Don't blink, sayang.",
+    "file": "board_wan_myTurn_05.wav"
+  },
+  {
+    "id": "board_wan_myTurn_06",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Now, where shall I put these...",
+    "file": "board_wan_myTurn_06.wav"
+  },
+  {
     "id": "board_wan_extra_01",
     "section": "board",
     "speaker": "woman",
@@ -313,6 +334,27 @@
     "speaker": "woman",
     "text": "One more, sayang.",
     "file": "board_wan_extra_02.m4a"
+  },
+  {
+    "id": "board_wan_extra_03",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Oh, another turn? Lovely.",
+    "file": "board_wan_extra_03.wav"
+  },
+  {
+    "id": "board_wan_extra_04",
+    "section": "board",
+    "speaker": "woman",
+    "text": "The seeds like me tonight.",
+    "file": "board_wan_extra_04.wav"
+  },
+  {
+    "id": "board_wan_extra_05",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Not done yet, sayang.",
+    "file": "board_wan_extra_05.wav"
   },
   {
     "id": "board_wan_captured_01",
@@ -329,6 +371,20 @@
     "file": "board_wan_captured_02.m4a"
   },
   {
+    "id": "board_wan_captured_03",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Hmph. Beginner's luck.",
+    "file": "board_wan_captured_03.wav"
+  },
+  {
+    "id": "board_wan_captured_04",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Enjoy it, sayang. It won't last.",
+    "file": "board_wan_captured_04.wav"
+  },
+  {
     "id": "board_wan_capturing_01",
     "section": "board",
     "speaker": "woman",
@@ -341,6 +397,20 @@
     "speaker": "woman",
     "text": "Did you see that coming?",
     "file": "board_wan_capturing_02.m4a"
+  },
+  {
+    "id": "board_wan_capturing_03",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Thank you, sayang.",
+    "file": "board_wan_capturing_03.wav"
+  },
+  {
+    "id": "board_wan_capturing_04",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Too slow.",
+    "file": "board_wan_capturing_04.wav"
   },
   {
     "id": "board_wan_caught_01",
@@ -364,6 +434,20 @@
     "file": "board_wan_caught_03.m4a"
   },
   {
+    "id": "board_wan_caught_04",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Aiyo, my hand slipped.",
+    "file": "board_wan_caught_04.wav"
+  },
+  {
+    "id": "board_wan_caught_05",
+    "section": "board",
+    "speaker": "woman",
+    "text": "Such a fuss over one seed.",
+    "file": "board_wan_caught_05.wav"
+  },
+  {
     "id": "board_wan_clean_01",
     "section": "board",
     "speaker": "woman",
@@ -376,6 +460,20 @@
     "speaker": "woman",
     "text": "Nothing there, sayang.",
     "file": "board_wan_clean_02.m4a"
+  },
+  {
+    "id": "board_wan_clean_03",
+    "section": "board",
+    "speaker": "woman",
+    "text": "See? Nothing, sayang.",
+    "file": "board_wan_clean_03.wav"
+  },
+  {
+    "id": "board_wan_clean_04",
+    "section": "board",
+    "speaker": "woman",
+    "text": "You don't trust your auntie?",
+    "file": "board_wan_clean_04.wav"
   },
   {
     "id": "board_wan_intro",
@@ -413,6 +511,27 @@
     "file": "board_chief_myTurn_03.m4a"
   },
   {
+    "id": "board_chief_myTurn_04",
+    "section": "board",
+    "speaker": "chief",
+    "text": "Silence. I am thinking.",
+    "file": "board_chief_myTurn_04.wav"
+  },
+  {
+    "id": "board_chief_myTurn_05",
+    "section": "board",
+    "speaker": "chief",
+    "text": "Watch, and learn your place.",
+    "file": "board_chief_myTurn_05.wav"
+  },
+  {
+    "id": "board_chief_myTurn_06",
+    "section": "board",
+    "speaker": "chief",
+    "text": "My turn. Pay attention.",
+    "file": "board_chief_myTurn_06.wav"
+  },
+  {
     "id": "board_chief_extra_01",
     "section": "board",
     "speaker": "chief",
@@ -425,6 +544,34 @@
     "speaker": "chief",
     "text": "The law favours me.",
     "file": "board_chief_extra_02.m4a"
+  },
+  {
+    "id": "board_chief_extra_03",
+    "section": "board",
+    "speaker": "chief",
+    "text": "Once more.",
+    "file": "board_chief_extra_03.wav"
+  },
+  {
+    "id": "board_chief_extra_04",
+    "section": "board",
+    "speaker": "chief",
+    "text": "The court continues.",
+    "file": "board_chief_extra_04.wav"
+  },
+  {
+    "id": "board_chief_extra_05",
+    "section": "board",
+    "speaker": "chief",
+    "text": "I am not finished.",
+    "file": "board_chief_extra_05.wav"
+  },
+  {
+    "id": "board_chief_extra_06",
+    "section": "board",
+    "speaker": "chief",
+    "text": "Another turn for the chief.",
+    "file": "board_chief_extra_06.wav"
   },
   {
     "id": "board_chief_captured_01",
@@ -441,6 +588,20 @@
     "file": "board_chief_captured_02.m4a"
   },
   {
+    "id": "board_chief_captured_03",
+    "section": "board",
+    "speaker": "chief",
+    "text": "Enjoy it while you can.",
+    "file": "board_chief_captured_03.wav"
+  },
+  {
+    "id": "board_chief_captured_04",
+    "section": "board",
+    "speaker": "chief",
+    "text": "That will be remembered.",
+    "file": "board_chief_captured_04.wav"
+  },
+  {
     "id": "board_chief_capturing_01",
     "section": "board",
     "speaker": "chief",
@@ -453,6 +614,20 @@
     "speaker": "chief",
     "text": "As the court has judged.",
     "file": "board_chief_capturing_02.m4a"
+  },
+  {
+    "id": "board_chief_capturing_03",
+    "section": "board",
+    "speaker": "chief",
+    "text": "Forfeited.",
+    "file": "board_chief_capturing_03.wav"
+  },
+  {
+    "id": "board_chief_capturing_04",
+    "section": "board",
+    "speaker": "chief",
+    "text": "These belong to me now.",
+    "file": "board_chief_capturing_04.wav"
   },
   {
     "id": "board_chief_caught_01",
@@ -476,6 +651,20 @@
     "file": "board_chief_caught_03.m4a"
   },
   {
+    "id": "board_chief_caught_04",
+    "section": "board",
+    "speaker": "chief",
+    "text": "A small mistake. Nothing more.",
+    "file": "board_chief_caught_04.wav"
+  },
+  {
+    "id": "board_chief_caught_05",
+    "section": "board",
+    "speaker": "chief",
+    "text": "Mind your tongue.",
+    "file": "board_chief_caught_05.wav"
+  },
+  {
     "id": "board_chief_clean_01",
     "section": "board",
     "speaker": "chief",
@@ -488,6 +677,20 @@
     "speaker": "chief",
     "text": "The court finds nothing.",
     "file": "board_chief_clean_02.m4a"
+  },
+  {
+    "id": "board_chief_clean_03",
+    "section": "board",
+    "speaker": "chief",
+    "text": "Your eyes deceive you.",
+    "file": "board_chief_clean_03.wav"
+  },
+  {
+    "id": "board_chief_clean_04",
+    "section": "board",
+    "speaker": "chief",
+    "text": "Nothing happened. Sit down.",
+    "file": "board_chief_clean_04.wav"
   },
   {
     "id": "board_chief_intro",
